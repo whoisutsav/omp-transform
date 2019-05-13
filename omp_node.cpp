@@ -27,6 +27,10 @@ string OMPNode::getDirectiveName() const {
       return "parallel";
     case OMPN_CRITICAL:
       return "critical";
+    case OMPN_MASTER:
+      return "master";
+    case OMPN_SINGLE:
+      return "single";
     default:
       return "";
   }
@@ -36,6 +40,7 @@ bool OMPNode::isDirective() const {
   switch(type) {
     case OMPN_PARALLEL:
     case OMPN_CRITICAL:
+    case OMPN_MASTER:
       return true;
     default:
       return false;
@@ -52,7 +57,7 @@ void OMPNode::print(ostream &o, int tabLevel) const {
         for (i = clauses.begin(); i != clauses.end(); ++i)
           o << " " << formatClause(i->first, i->second); 
 
-        o << " {" << "\n";
+        o << "\n" << string(tabLevel, '\t') << " {" << "\n";
 
         // print child nodes
         list<OMPNode *>::const_iterator j;

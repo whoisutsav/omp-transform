@@ -3,3 +3,8 @@ main
 
 # object files
 *.o
+
+#other files
+a.out
+output.c
+

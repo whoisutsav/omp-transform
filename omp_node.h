@@ -9,11 +9,11 @@ using namespace std;
 
 enum OMPClauseType { OMPC_NUM_THREADS, OMPC_IF };
 
-enum NodeType { OMPN_PARALLEL, OMPN_CRITICAL, OMPN_STMT };
+enum OMPNodeType { OMPN_PARALLEL, OMPN_SINGLE, OMPN_CRITICAL, OMPN_MASTER, OMPN_STMT };
 
 class OMPNode {
   public:
-    NodeType type;
+    OMPNodeType type;
 
     list <OMPNode *> children;
 
