@@ -2,19 +2,12 @@
 #define _OMP_NODE_H
 
 #include <list>
+#include <unordered_map>
 #include <string>
 #include <ostream>
 using namespace std;
 
-enum ClauseType { OMPC_NUM_THREADS, OMPC_IF};
-
-class OMPClause {
-  public:
-    ClauseType type;
-    string expr;
-
-    string getClause() const;
-};
+enum OMPClauseType { OMPC_NUM_THREADS, OMPC_IF};
 
 enum NodeType { OMPN_PARALLEL, OMPN_STMT };
 
@@ -23,7 +16,9 @@ class OMPNode {
     NodeType type;
 
     list <OMPNode *> children;
-    list <OMPClause *> clauses;
+
+    // Indexed by OMPClauseType (int)
+    unordered_map<int, string> clauses;
 
     string stmt;
 

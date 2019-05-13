@@ -1,23 +1,24 @@
-#include <ostream>
 #include <string>
+#include <list>
+#include <unordered_map>
 #include <ostream>
 #include "omp_node.h"
 
-string OMPClause::getClause() const {
-  string str;
-  switch(type) {
+string formatClause(int t, string expr) {
+  string result;
+  switch(t) {
     case OMPC_NUM_THREADS:
-      str = "num_threads(" + expr + ")"; 
+      result = "num_threads(" + expr + ")"; 
       break;
     case OMPC_IF:
-      str = "if(" + expr + ")";
+      result = "if(" + expr + ")";
       break;
     default:
-      str = "";
+      result = "";
       break;
   }
 
-  return str;
+  return result;
 }
 
 string OMPNode::getDirectiveName() const {
@@ -46,9 +47,9 @@ void OMPNode::print(ostream &o) const {
         o << "#pragma omp " << getDirectiveName();
 
         // print clauses
-        list<OMPClause *>::const_iterator i;
+        unordered_map<int, string>::const_iterator i;
         for (i = clauses.begin(); i != clauses.end(); ++i)
-          o << " " << (*i)->getClause(); 
+          o << " " << formatClause(i->first, i->second); 
 
         o << " {" << "\n";
 

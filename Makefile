@@ -1,5 +1,5 @@
 CXX = clang++
-CXXFLAGS = -Wall -Werror
+CXXFLAGS = -Wall -Werror -std=c++11
 
 all: omp_node.o main.o transformer.o
 	$(CXX) $(CXXFLAGS) -o main main.o omp_node.o 

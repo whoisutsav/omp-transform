@@ -8,14 +8,10 @@ OMPNode* buildTree() {
   retstmt_node->type = OMPN_STMT;
   retstmt_node->stmt = "return 0;";
 
-  OMPClause* omp_clause = new OMPClause();
-  omp_clause->type = OMPC_NUM_THREADS;
-  omp_clause->expr = "5";
-
   OMPNode* omp_node = new OMPNode();
   omp_node->type = OMPN_PARALLEL;
-  omp_node->clauses.push_front(omp_clause);
   omp_node->children.push_front(retstmt_node);
+  omp_node->clauses.insert({OMPC_NUM_THREADS, "5"});
 
   return omp_node;
 }
