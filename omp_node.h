@@ -4,12 +4,12 @@
 #include <list>
 #include <unordered_map>
 #include <string>
-#include <ostream>
+#include <iostream>
 using namespace std;
 
-enum OMPClauseType { OMPC_NUM_THREADS, OMPC_IF};
+enum OMPClauseType { OMPC_NUM_THREADS, OMPC_IF };
 
-enum NodeType { OMPN_PARALLEL, OMPN_STMT };
+enum NodeType { OMPN_PARALLEL, OMPN_CRITICAL, OMPN_STMT };
 
 class OMPNode {
   public:
@@ -24,7 +24,7 @@ class OMPNode {
 
     bool isDirective() const;
     string getDirectiveName() const;
-    void print(ostream &o) const;
+    void print(ostream &o, int tabLevel) const;
 };
 
 

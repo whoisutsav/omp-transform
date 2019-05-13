@@ -1,5 +1,6 @@
 #include <iostream>
 #include "omp_node.h"
+#include "transformer.h"
 using namespace std;
 
 
@@ -19,5 +20,6 @@ OMPNode* buildTree() {
 int main()
 {
   OMPNode * tree = buildTree();
-  tree->print(cout);
+  Transformer::transform(tree);
+  tree->print(cout, 0);
 }
