@@ -1,14 +1,17 @@
 CXX = clang++
 CXXFLAGS = -Wall -Werror
 
-all: ast_node.o main.o
-	$(CXX) $(CXXFLAGS) -o main main.o ast_node.o 
+all: omp_node.o main.o transformer.o
+	$(CXX) $(CXXFLAGS) -o main main.o omp_node.o 
 
 main.o:
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
-ast_node.o: ast_node.h
-	$(CXX) $(CXXFLAGS) -c ast_node.cpp
+omp_node.o: omp_node.h
+	$(CXX) $(CXXFLAGS) -c omp_node.cpp
+
+transformer.o: transformer.h
+	$(CXX) $(CXXFLAGS) -c transformer.cpp
 
 clean:
-	rm -f main main.o ast_node.o 
+	rm -f main main.o omp_node.o transformer.o

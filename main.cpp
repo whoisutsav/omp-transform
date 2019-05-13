@@ -1,17 +1,20 @@
 #include <iostream>
-#include "ast_node.h"
+#include "omp_node.h"
 using namespace std;
 
 
-AstNode* buildTree() {
-  StmtNode* retstmt_node = new StmtNode();
-  retstmt_node->type = STMT;
+OMPNode* buildTree() {
+  OMPNode* retstmt_node = new OMPNode();
+  retstmt_node->type = OMPN_STMT;
   retstmt_node->stmt = "return 0;";
 
-  OmpNode* omp_node = new OmpNode();
-  omp_node->type = OMP_PARALLEL;
-  omp_node->num_threads_clause = true;
-  omp_node->num_threads_value = 1;
+  OMPClause* omp_clause = new OMPClause();
+  omp_clause->type = OMPC_NUM_THREADS;
+  omp_clause->expr = "5";
+
+  OMPNode* omp_node = new OMPNode();
+  omp_node->type = OMPN_PARALLEL;
+  omp_node->clauses.push_front(omp_clause);
   omp_node->children.push_front(retstmt_node);
 
   return omp_node;
@@ -19,6 +22,6 @@ AstNode* buildTree() {
 
 int main()
 {
-  AstNode * tree = buildTree();
-  tree->print();
+  OMPNode * tree = buildTree();
+  tree->print(cout);
 }
