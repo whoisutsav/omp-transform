@@ -1,37 +1,40 @@
 #include <iostream>
-#include "omp_node.h"
-#include "transformer.h"
+#include "ast_node.h"
+#include "fuzzer.h"
+#include "emi_transformer.h"
 using namespace std;
 
 
-OMPNode* buildTree() {
-  OMPNode* stmt_node = new OMPNode();
-  stmt_node->type = OMPN_STMT;
-  stmt_node->stmt = "5+3;";
+//void printProgram(ASTNode * tree) {
+//  cout << "#include <omp.h>" << "\n\n";
+//
+//  cout << "int main(int argc, char* argv[]) {\n";
+//  tree->print(cout, 1);
+//  cout << "\treturn 0;\n";
+//  cout << "}\n";
+//}
 
-  OMPNode* omp_node = new OMPNode();
-  omp_node->type = OMPN_PARALLEL;
-  omp_node->children.push_front(stmt_node);
-  omp_node->clauses.insert({OMPC_NUM_THREADS, "5"});
+ASTNode * generateBaseBlock() {
+  ASTNode * constant_expr = new ASTNode();
+  constant_expr->node_type = CONSTANT;
+  constant_expr->ival = 0;
 
-  return omp_node;
+  ASTNode * ret_stmt = new ASTNode();
+  ret_stmt->node_type = RET_STMT;
+  ret_stmt->children.push_back(constant_expr);
+
+  ASTNode * blk_stmt = new ASTNode();
+  blk_stmt->node_type = BLK_STMT;
+  blk_stmt->children.push_back(ret_stmt);
+  
+  return blk_stmt;
 }
 
-void printProgram(OMPNode * tree) {
-  cout << "#include <omp.h>" << "\n\n";
-
-  cout << "int main(int argc, char* argv[]) {\n";
-  tree->print(cout, 1);
-  cout << "\treturn 0;\n";
-  cout << "}\n";
-}
-
-int main()
+int main(int argc, char* argv[])
 {
-  OMPNode * tree = buildTree();
-
-  Transformer * myTransformer = new Transformer(0.7, 0.7, 0.7);
-  myTransformer->transform(tree);
-
-  printProgram(tree);
+  ASTNode * root = generateBaseBlock();
+  EMI_Transformer transformer(0);
+  transformer.transform(root);
+  root->print(cout, 0);
+  return 0;
 }
