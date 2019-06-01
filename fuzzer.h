@@ -8,6 +8,10 @@ using namespace std;
 class Fuzzer {
   public:
     ASTNode* generateFragment();
+
+    // TODO move into helper class
+    static ASTNode* getConstExpr(int val);
+
     Fuzzer(int seed) {srand(seed);}; 
 
   private:

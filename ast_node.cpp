@@ -5,8 +5,8 @@
 #include "ast_node.h"
 
 
-string getDirectiveName(ASTNodeType node_type) {
-  switch(node_type) {
+string getDirectiveName(ASTNodeType type) {
+  switch(type) {
     case OMPN_PARALLEL:
       return "parallel";
     case OMPN_CRITICAL:
@@ -15,16 +15,20 @@ string getDirectiveName(ASTNodeType node_type) {
       return "master";
     case OMPN_SINGLE:
       return "single";
+    case OMPN_FOR:
+      return "for";
     default:
       return "";
   }
 }
 
 bool ASTNode::isDirective() const {
-  switch(node_type) {
+  switch(type) {
     case OMPN_PARALLEL:
     case OMPN_CRITICAL:
     case OMPN_MASTER:
+    case OMPN_SINGLE:
+    case OMPN_FOR:
       return true;
     default:
       return false;
@@ -41,6 +45,14 @@ string operatorToStr(Operator op) {
       return "*";
     case DIV:
       return "\\";
+    case LT:
+      return "<";
+    case LTE:
+      return "<=";
+    case GT:
+      return ">";
+    case GTE:
+      return ">=";
     default:
       return "";
   }
@@ -73,6 +85,11 @@ void printClause(ostream &o, int t, ASTNode * expr) {
       expr->print(o, 0);
       o << ")";
       break;
+    case OMPC_COLLAPSE:
+      o << "collapse(";
+      expr->print(o, 0);
+      o << ")";
+      break;
     default:
       break;
   }
@@ -82,7 +99,7 @@ void printClause(ostream &o, int t, ASTNode * expr) {
 void ASTNode::print(ostream &o, int tabLevel) const {
       if (isDirective()) {
         // print directive
-        o << string(tabLevel, '\t') << "#pragma omp " << getDirectiveName(node_type);
+        o << string(tabLevel, '\t') << "#pragma omp " << getDirectiveName(type);
 
         // print clauses
         unordered_map<int, ASTNode*>::const_iterator i;
@@ -97,14 +114,14 @@ void ASTNode::print(ostream &o, int tabLevel) const {
         for (ASTNode *j: children)
           j->print(o, tabLevel);
 
-      } else switch (node_type) {
+      } else switch (type) {
         case UNOP:
           // TODO 
           break;
         case BINOP:
           (children[0])->print(o, tabLevel);
           o << operatorToStr(op);
-          (children[0])->print(o, tabLevel);
+          (children[1])->print(o, tabLevel);
           break;
         case VAR:
           o << sval;
@@ -114,8 +131,10 @@ void ASTNode::print(ostream &o, int tabLevel) const {
           break;
         case BLK_STMT:
           o << string(tabLevel, '\t') << "{\n";
-          for (ASTNode* n: children)
+          for (ASTNode* n: children) {
             n->print(o, tabLevel+1);
+            o << "\n";
+          }
           o << string(tabLevel, '\t') << "}\n";
           break;
         case IF_STMT:
@@ -123,6 +142,14 @@ void ASTNode::print(ostream &o, int tabLevel) const {
           (children[0])->print(o, tabLevel);
           o << ")\n";
           (children[1])->print(o, tabLevel);
+          break;
+        case FOR_STMT:
+          o << string(tabLevel, '\t') << "for ("; 
+          (children[0])->print(o, 0);
+          (children[1])->print(o, 0);
+          (children[2])->print(o, 0);
+          o << ")\n";
+          (children[3])->print(o, tabLevel+1);
           break;
         case VDECL:
           o << ctypeToStr(ctype) << " ";
@@ -133,17 +160,17 @@ void ASTNode::print(ostream &o, int tabLevel) const {
           (children[0])->print(o, 0);
           o << " = ";
           (children[1])->print(o, 0);
-          o << ";\n" ;
+          o << ";" ;
           break;
         case EXP_STMT:
           o << string(tabLevel, '\t');
           (children[0])->print(o, 0);
-          o << ";\n"; 
+          o << ";"; 
           break;
         case RET_STMT:
           o << string(tabLevel, '\t') << "return ";
           (children[0])->print(o, 0);
-          o << ";\n";
+          o << ";";
           break;
         default:
           break;
