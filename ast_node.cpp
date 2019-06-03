@@ -163,12 +163,10 @@ void ASTNode::print(ostream &o, int tabLevel) const {
           o << ctypeToStr(ctype) << " ";
           (children[0])->print(o, 0);
           break;
-        case ASSIGN_STMT:
-          o << string(tabLevel, '\t');
+        case ASSIGN_EXP:
           (children[0])->print(o, 0);
           o << " = ";
           (children[1])->print(o, 0);
-          o << ";" ;
           break;
         case EXP_STMT:
           o << string(tabLevel, '\t');

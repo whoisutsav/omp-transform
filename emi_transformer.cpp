@@ -124,7 +124,7 @@ ASTNode * EMI_Transformer::generateLoopNest(vector<int> iterations, ASTNode* bod
     step_expr->children.push_back(step_var);
 
     ASTNode * step_assignment = new ASTNode();
-    step_assignment->type = ASSIGN_STMT;
+    step_assignment->type = ASSIGN_EXP;
     step_assignment->children.push_back(step_var);
     step_assignment->children.push_back(step_expr);
 
@@ -158,12 +158,16 @@ ASTNode * EMI_Transformer::generateIncrementLoop(vector<int> iterations) {
   counter_expr->children.push_back(counter_var);
   counter_expr->children.push_back(counter_constant);
 
-  ASTNode * counter_assignment = new ASTNode();
-  counter_assignment->type = ASSIGN_STMT;
-  counter_assignment->children.push_back(counter_var);
-  counter_assignment->children.push_back(counter_expr);
+  ASTNode * counter_assignment_exp = new ASTNode();
+  counter_assignment_exp->type = ASSIGN_EXP;
+  counter_assignment_exp->children.push_back(counter_var);
+  counter_assignment_exp->children.push_back(counter_expr);
 
-  ASTNode * loop_nest = generateLoopNest(iterations, counter_assignment);
+  ASTNode * body = new ASTNode();
+  body->type = EXP_STMT;
+  body->children.push_back(counter_assignment_exp);
+
+  ASTNode * loop_nest = generateLoopNest(iterations, body);
 
   return loop_nest;
 }
@@ -201,6 +205,7 @@ void EMI_Transformer::insertIncrementLoop(ASTNode* blk_stmt, int n) {
       break;
   }
 
+  expected_counter_output += n;
   blk_stmt->children.insert(blk_stmt->children.begin(), omp_for);
 }
 
@@ -263,12 +268,16 @@ ASTNode * generate_assignment_stmt_node(string varName, int val) {
   const_node->ctype = INT;
   const_node->ival = val;
 
-  ASTNode * assign_node = new ASTNode();
-  assign_node->type = ASSIGN_STMT;
-  assign_node->children.push_back(vdecl_node);
-  assign_node->children.push_back(const_node);
+  ASTNode * assign_exp_node = new ASTNode();
+  assign_exp_node->type = ASSIGN_EXP;
+  assign_exp_node->children.push_back(vdecl_node);
+  assign_exp_node->children.push_back(const_node);
 
-  return assign_node;
+  ASTNode * exp_stmt_node = new ASTNode();
+  exp_stmt_node->type = EXP_STMT;
+  exp_stmt_node->children.push_back(assign_exp_node);
+
+  return exp_stmt_node;
 }
 
 void EMI_Transformer::processEMI(ASTNode * root) {
@@ -293,12 +302,16 @@ void EMI_Transformer::processEMI(ASTNode * root) {
   const_node->ctype = INT;
   const_node->ival = 0;
 
-  ASTNode * assign_node = new ASTNode();
-  assign_node->type = ASSIGN_STMT;
-  assign_node->children.push_back(vdecl_node);
-  assign_node->children.push_back(const_node);
+  ASTNode * assign_exp = new ASTNode();
+  assign_exp->type = ASSIGN_EXP;
+  assign_exp->children.push_back(vdecl_node);
+  assign_exp->children.push_back(const_node);
 
-  root->children.insert(root->children.begin(), assign_node);
+  ASTNode * exp_stmt = new ASTNode();
+  exp_stmt->type = EXP_STMT;
+  exp_stmt->children.push_back(assign_exp);
+
+  root->children.insert(root->children.begin(), exp_stmt);
 
   // add EMI vars
   // TODO not efficient 

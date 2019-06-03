@@ -17,6 +17,7 @@ class EMI_Transformer {
     EMI_Transformer(int seed)
             : fuzzer(seed) 
             {srand(seed);}; 
+    int expected_counter_output = 0;
   private:
     Fuzzer fuzzer;  
     unordered_map<string, int> input_set;
