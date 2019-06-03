@@ -141,16 +141,7 @@ ASTNode * EMI_Transformer::generateLoopNest(vector<int> iterations, ASTNode* bod
   return current;
 }
 
-ASTNode * EMI_Transformer::generateIncrementLoopCollapse(int total) {
-
-  // Generate random loop structure
-  // For now, all outer loops have single iteration 
-  // Inner loop has `total` iterations
-  vector<int> iterations;
-  iterations.push_back(total);
-  for(int i=1; i < (rand() % 5) + 1; i++) {
-    iterations.push_back(1);
-  } 
+ASTNode * EMI_Transformer::generateIncrementLoop(vector<int> iterations) {
 
   ASTNode * counter_constant = new ASTNode();
   counter_constant->type = CONSTANT; 
@@ -174,25 +165,43 @@ ASTNode * EMI_Transformer::generateIncrementLoopCollapse(int total) {
 
   ASTNode * loop_nest = generateLoopNest(iterations, counter_assignment);
 
+  return loop_nest;
+}
+
+// TODO need some way to keep track of where in the tree the counter initialization is 
+// Maybe merge into initialize counter routine
+// Also where to position the increment loop 
+void EMI_Transformer::insertIncrementLoop(ASTNode* blk_stmt, int n) {
+
+  // Generate random loop structure
+  // For now, all outer loops have single iteration 
+  // Inner loop has `total` iterations
+  vector<int> iterations;
+  iterations.push_back(n);
+  for(int i=1; i < (rand() % 4) + 3; i++) {
+    iterations.push_back(1);
+  } 
+
+  ASTNode * loop_nest = generateIncrementLoop(iterations); 
+
   // collapse the loops with OpenMP
   // TODO - pick random value for collapse (instead of collapsing all) 
   int collapse_num = iterations.size(); 
   ASTNode * omp_for = new ASTNode();
   omp_for->type = OMPN_FOR;
   omp_for->children.push_back(loop_nest);
-  omp_for->clauses.insert({OMPC_COLLAPSE, Fuzzer::getConstExpr(collapse_num)});
 
-  return omp_for;
-}
+  switch(rand() % 2) {
+    case 0:
+      omp_for->clauses.insert({OMPC_COLLAPSE, Fuzzer::getConstExpr(collapse_num)});
+      break;
+    case 1:
+    default:
+      omp_for->clauses.insert({OMPC_REDUCTION, Fuzzer::getConstExpr("+:" + counter_name)});
+      break;
+  }
 
-// TODO need some way to keep track of where in the tree the counter initialization is 
-// Maybe merge into initialize counter routine
-// Also where to position the increment loop 
-void EMI_Transformer::insertIncrementLoopCollapse(ASTNode* blk_stmt, int n) {
-        // parameters: number of loops, starting variable, step (increment amount), predicate, whether predicate contains EMI, etc.
-
-      ASTNode * loop_nest = generateIncrementLoopCollapse(n); 
-      blk_stmt->children.insert(blk_stmt->children.begin(), loop_nest);
+  blk_stmt->children.insert(blk_stmt->children.begin(), omp_for);
 }
 
 ASTNode * EMI_Transformer::create_dead_fragment_modulo_input() {

@@ -10,7 +10,8 @@ class Fuzzer {
     ASTNode* generateFragment();
 
     // TODO move into helper class
-    static ASTNode* getConstExpr(int val);
+    static ASTNode* getConstExpr(int ival);
+    static ASTNode* getConstExpr(string sval);
 
     Fuzzer(int seed) {srand(seed);}; 
 

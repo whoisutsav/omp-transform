@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 {
   ASTNode * root = generateBaseBlock();
   EMI_Transformer transformer(time(0));
-  transformer.insertIncrementLoopCollapse(root, 7);
+  transformer.insertIncrementLoop(root, 7);
   transformer.processEMI(root);
   //transformer.transform(root);
   root->print(cout, 0);

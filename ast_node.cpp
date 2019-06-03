@@ -90,6 +90,11 @@ void printClause(ostream &o, int t, ASTNode * expr) {
       expr->print(o, 0);
       o << ")";
       break;
+    case OMPC_REDUCTION:
+      o << "reduction(";
+      expr->print(o, 0);
+      o << ")";
+      break;
     default:
       break;
   }
@@ -128,6 +133,9 @@ void ASTNode::print(ostream &o, int tabLevel) const {
           break;
         case CONSTANT:
           o << ival;
+          break;
+        case STR_CONSTANT:
+          o << sval;
           break;
         case BLK_STMT:
           o << string(tabLevel, '\t') << "{\n";

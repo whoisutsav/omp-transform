@@ -7,10 +7,18 @@ float getRandomPct() {
   return (rand() % 1000)/1000.0;
 }
 
-ASTNode* Fuzzer::Fuzzer::getConstExpr(int val) {
+ASTNode* Fuzzer::Fuzzer::getConstExpr(int ival) {
   ASTNode * const_node = new ASTNode();
   const_node->type = CONSTANT;
-  const_node->ival = val;
+  const_node->ival = ival;
+
+  return const_node;
+}
+
+ASTNode* Fuzzer::Fuzzer::getConstExpr(string sval) {
+  ASTNode * const_node = new ASTNode();
+  const_node->type = STR_CONSTANT;
+  const_node->sval = sval;
 
   return const_node;
 }

@@ -7,11 +7,11 @@
 #include <iostream>
 using namespace std;
 
-enum OMPClauseType { OMPC_NUM_THREADS, OMPC_IF, OMPC_COLLAPSE };
+enum OMPClauseType { OMPC_NUM_THREADS, OMPC_IF, OMPC_COLLAPSE, OMPC_REDUCTION };
 enum Operator { ADD, MINUS, MULT, DIV, LT, GT, LTE, GTE };
 enum CType { CHAR, SHORT, INT, LONG }; 
 
-enum ASTNodeType { UNOP, BINOP, VAR, CONSTANT, IF_STMT, FOR_STMT, ASSIGN_STMT, EXP_STMT, BLK_STMT, RET_STMT, VDECL, OMPN_PARALLEL, OMPN_SINGLE, OMPN_CRITICAL, OMPN_MASTER, OMPN_FOR };
+enum ASTNodeType { UNOP, BINOP, VAR, CONSTANT, STR_CONSTANT, IF_STMT, FOR_STMT, ASSIGN_STMT, EXP_STMT, BLK_STMT, RET_STMT, VDECL, OMPN_PARALLEL, OMPN_SINGLE, OMPN_CRITICAL, OMPN_MASTER, OMPN_FOR };
 
 class ASTNode {
   public:
@@ -23,6 +23,7 @@ class ASTNode {
     int ival;
 
     // VAR name
+    // STR_CONSTANT value
     string sval;
 
     // BINOP:  [0] = op1, [1] = op2
