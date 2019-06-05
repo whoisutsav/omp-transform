@@ -15,8 +15,10 @@ string getDirectiveName(ASTNodeType type) {
       return "master";
     case OMPN_SINGLE:
       return "single";
-    case OMPN_FOR:
-      return "for";
+    case OMPN_PARALLEL_FOR:
+      return "parallel for";
+    case OMPN_TARGET:
+      return "target";
     default:
       return "";
   }
@@ -28,7 +30,8 @@ bool ASTNode::isDirective() const {
     case OMPN_CRITICAL:
     case OMPN_MASTER:
     case OMPN_SINGLE:
-    case OMPN_FOR:
+    case OMPN_PARALLEL_FOR:
+    case OMPN_TARGET:
       return true;
     default:
       return false;
@@ -154,7 +157,9 @@ void ASTNode::print(ostream &o, int tabLevel) const {
         case FOR_STMT:
           o << string(tabLevel, '\t') << "for ("; 
           (children[0])->print(o, 0);
+          o << ";";
           (children[1])->print(o, 0);
+          o << ";";
           (children[2])->print(o, 0);
           o << ")\n";
           (children[3])->print(o, tabLevel+1);
@@ -177,6 +182,10 @@ void ASTNode::print(ostream &o, int tabLevel) const {
           o << string(tabLevel, '\t') << "return ";
           (children[0])->print(o, 0);
           o << ";";
+          break;
+        // TODO remove
+        case CUSTOM:
+          o << string(tabLevel, '\t') << sval;
           break;
         default:
           break;

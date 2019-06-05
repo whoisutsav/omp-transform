@@ -72,27 +72,39 @@ tuple <int, int, Operator, int> generateLoopParameters(int num_iterations) {
 ASTNode * EMI_Transformer::generateLoopNest(vector<int> iterations, ASTNode* body) {
   ASTNode * current = body;
 
-  for(int n: iterations) {
-    tuple <int, int, Operator, int> params = generateLoopParameters(n);  
+  for(int i=0; i<iterations.size(); i++) {
+    tuple <int, int, Operator, int> params = generateLoopParameters(iterations[i]);  
 
-    string emiVarName = var_base + to_string(input_set.size() + 1); // TODO - fix
-    int emiVarVal = get<0>(params);
+    string emi_var_name = var_base + to_string(input_set.size() + 1); // TODO - fix
+    int emi_var_val = get<0>(params);
 
-    input_set.insert({emiVarName, emiVarVal});
+    input_set.insert({emi_var_name, emi_var_val});
 
     // initialize loop counter node (using EMI) 
+    string loop_counter_name = "i" + to_string(i);
+    
     ASTNode * loop_counter_var = new ASTNode(); 
     loop_counter_var->type = VAR; 
-    loop_counter_var->sval = emiVarName;
+    loop_counter_var->sval = loop_counter_name;
+
+    ASTNode * loop_counter_vdecl = new ASTNode(); 
+    loop_counter_vdecl->type = VDECL; 
+    loop_counter_vdecl->ctype = INT;
+    loop_counter_vdecl->children.push_back(loop_counter_var);
+
+    ASTNode * emi_var_node = new ASTNode(); 
+    emi_var_node->type = VAR; 
+    emi_var_node->sval = emi_var_name;
 
     ASTNode * loop_counter_initialization = new ASTNode();
-    loop_counter_initialization->type = EXP_STMT;
-    loop_counter_initialization->children.push_back(loop_counter_var);
+    loop_counter_initialization->type = ASSIGN_EXP;
+    loop_counter_initialization->children.push_back(loop_counter_vdecl);
+    loop_counter_initialization->children.push_back(emi_var_node);
 
     // initialize loop predicate node 
     ASTNode * predicate_var = new ASTNode();
     predicate_var->type = VAR;
-    predicate_var->sval = emiVarName;
+    predicate_var->sval = loop_counter_name;
 
     ASTNode * predicate_constant = new ASTNode();
     predicate_constant->type = CONSTANT;
@@ -104,10 +116,6 @@ ASTNode * EMI_Transformer::generateLoopNest(vector<int> iterations, ASTNode* bod
     pred_expr->children.push_back(predicate_var);
     pred_expr->children.push_back(predicate_constant);
 
-    ASTNode * pred_stmt = new ASTNode(); 
-    pred_stmt->type = EXP_STMT;
-    pred_stmt->children.push_back(pred_expr);
-
     // initialize loop step statement 
     ASTNode * step_constant = new ASTNode();
     step_constant->type = CONSTANT; 
@@ -115,7 +123,7 @@ ASTNode * EMI_Transformer::generateLoopNest(vector<int> iterations, ASTNode* bod
 
     ASTNode * step_var = new ASTNode();
     step_var->type = VAR;
-    step_var->sval = emiVarName;
+    step_var->sval = loop_counter_name;
 
     ASTNode * step_expr = new ASTNode();
     step_expr->type = BINOP;
@@ -131,7 +139,7 @@ ASTNode * EMI_Transformer::generateLoopNest(vector<int> iterations, ASTNode* bod
     ASTNode * for_loop = new ASTNode();
     for_loop->type = FOR_STMT;
     for_loop->children.push_back(loop_counter_initialization);
-    for_loop->children.push_back(pred_stmt);  
+    for_loop->children.push_back(pred_expr);  
     for_loop->children.push_back(step_assignment);
     for_loop->children.push_back(current); 
 
@@ -143,6 +151,7 @@ ASTNode * EMI_Transformer::generateLoopNest(vector<int> iterations, ASTNode* bod
 
 ASTNode * EMI_Transformer::generateIncrementLoop(vector<int> iterations) {
 
+  // Generate loop body
   ASTNode * counter_constant = new ASTNode();
   counter_constant->type = CONSTANT; 
   counter_constant->ival = 1; 
@@ -167,6 +176,7 @@ ASTNode * EMI_Transformer::generateIncrementLoop(vector<int> iterations) {
   body->type = EXP_STMT;
   body->children.push_back(counter_assignment_exp);
 
+  // Generate loop nest
   ASTNode * loop_nest = generateLoopNest(iterations, body);
 
   return loop_nest;
@@ -188,39 +198,43 @@ void EMI_Transformer::insertIncrementLoop(ASTNode* blk_stmt, int n) {
 
   ASTNode * loop_nest = generateIncrementLoop(iterations); 
 
-  // collapse the loops with OpenMP
-  // TODO - pick random value for collapse (instead of collapsing all) 
-  int collapse_num = iterations.size(); 
   ASTNode * omp_for = new ASTNode();
-  omp_for->type = OMPN_FOR;
+  omp_for->type = OMPN_PARALLEL_FOR;
   omp_for->children.push_back(loop_nest);
 
   switch(rand() % 2) {
     case 0:
-      omp_for->clauses.insert({OMPC_COLLAPSE, Fuzzer::getConstExpr(collapse_num)});
+      // collapse the loops 
+      // TODO - pick random value for collapse (instead of collapsing all) 
+      omp_for->clauses.insert({OMPC_COLLAPSE, Fuzzer::getConstExpr(iterations.size())});
       break;
     case 1:
     default:
+      // reduce the loop counter
       omp_for->clauses.insert({OMPC_REDUCTION, Fuzzer::getConstExpr("+:" + counter_name)});
       break;
   }
 
+  ASTNode * omp_target = new ASTNode();
+  omp_target->type = OMPN_TARGET;
+  omp_target->children.push_back(omp_for);
+  
+  blk_stmt->children.insert(blk_stmt->children.begin(), omp_target);
   expected_counter_output += n;
-  blk_stmt->children.insert(blk_stmt->children.begin(), omp_for);
 }
 
 ASTNode * EMI_Transformer::create_dead_fragment_modulo_input() {
-  string emiVarName = var_base + to_string(input_set.size() + 1);
-  int emiVarVal = 0;
+  string emi_var_name = var_base + to_string(input_set.size() + 1);
+  int emi_var_val = 0;
 
-  input_set.insert({emiVarName, emiVarVal});
+  input_set.insert({emi_var_name, emi_var_val});
 
   ASTNode* if_node =  new ASTNode();
   if_node->type = IF_STMT;
 
   ASTNode * expr = new ASTNode();
   expr->type = VAR;
-  expr->sval = emiVarName;
+  expr->sval = emi_var_name;
 
   ASTNode * blk_stmt_node = new ASTNode();
   blk_stmt_node->type = BLK_STMT;
@@ -249,11 +263,36 @@ void EMI_Transformer::dead_code_transform(ASTNode * node) {
 }
 
 // convert expressions to new expressions that are equivalent (modulo input)
-void EMI_Transformer::expression_transform(ASTNode * node) {
-  // TODO
+ASTNode* EMI_Transformer::expression_transform_add_emi(ASTNode * exp_node) {
+
+  string emi_var_name = var_base + to_string(input_set.size() + 1);
+  int emi_var_val = (rand() % 20) + 1;
+  input_set.insert({emi_var_name, emi_var_val});
+  
+  ASTNode * const_lhs = new ASTNode();
+  const_lhs->type = VAR;
+  const_lhs->sval = emi_var_name;
+
+  ASTNode * const_rhs = new ASTNode();
+  const_rhs->type = CONSTANT;
+  const_rhs->ival = emi_var_val;
+
+  ASTNode * identical_binop_exp = new ASTNode();
+  identical_binop_exp->type = BINOP; 
+  identical_binop_exp->op = MINUS;
+  identical_binop_exp->children.push_back(const_lhs);
+  identical_binop_exp->children.push_back(const_rhs);
+
+  ASTNode * modified_exp_node = new ASTNode();
+  modified_exp_node->type = BINOP;
+  modified_exp_node->op = ADD;
+  modified_exp_node->children.push_back(exp_node);
+  modified_exp_node->children.push_back(identical_binop_exp);
+
+  return modified_exp_node;
 }
 
-ASTNode * generate_assignment_stmt_node(string varName, int val) {
+ASTNode * generate_emi_stmt_node(string varName, int input_index) {
   ASTNode * var_node = new ASTNode();
   var_node->type = VAR;
   var_node->sval = varName;
@@ -264,9 +303,9 @@ ASTNode * generate_assignment_stmt_node(string varName, int val) {
   vdecl_node->children.push_back(var_node);
 
   ASTNode * const_node = new ASTNode();
-  const_node->type = CONSTANT;
-  const_node->ctype = INT;
-  const_node->ival = val;
+  const_node->type = CUSTOM;
+  //const_node->ctype = INT;
+  const_node->sval = "atoi(argv[" + to_string(input_index) + "]);";
 
   ASTNode * assign_exp_node = new ASTNode();
   assign_exp_node->type = ASSIGN_EXP;
@@ -279,6 +318,17 @@ ASTNode * generate_assignment_stmt_node(string varName, int val) {
 
   return exp_stmt_node;
 }
+
+vector<int> EMI_Transformer::get_inputs() {
+  vector<int> inputs;
+  unordered_map<string, int>::const_iterator i;
+  for (i = input_set.begin(); i != input_set.end(); ++i) {
+    inputs.push_back(i->second);
+  }
+
+  return inputs;
+}
+
 
 void EMI_Transformer::processEMI(ASTNode * root) {
  
@@ -316,8 +366,10 @@ void EMI_Transformer::processEMI(ASTNode * root) {
   // add EMI vars
   // TODO not efficient 
   unordered_map<string, int>::const_iterator i;
+  int input_index=1;
   for (i = input_set.begin(); i != input_set.end(); ++i) {
-    root->children.insert(root->children.begin(), generate_assignment_stmt_node(i->first, i->second)); 
+    root->children.insert(root->children.begin(), generate_emi_stmt_node(i->first, input_index)); 
+    input_index++;
   }
 }
 
@@ -328,5 +380,5 @@ void EMI_Transformer::transform(ASTNode * root) {
   }
 
   dead_code_transform(root);
-  expression_transform(root);
+  //expression_transform(root);
 }

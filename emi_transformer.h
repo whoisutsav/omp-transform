@@ -10,7 +10,6 @@ using namespace std;
 class EMI_Transformer {
   public:
     void transform(ASTNode* root);
-    void initializeCounter(ASTNode* root);
     void insertIncrementLoop(ASTNode* blk_stmt, int n);
     void insertEmptyIncrementLoop(ASTNode * blk_stmt);
     void processEMI(ASTNode* root);
@@ -18,12 +17,13 @@ class EMI_Transformer {
             : fuzzer(seed) 
             {srand(seed);}; 
     int expected_counter_output = 0;
+    vector<int> get_inputs();
   private:
     Fuzzer fuzzer;  
     unordered_map<string, int> input_set;
     void dead_code_transform(ASTNode * node);
     ASTNode * create_dead_fragment_modulo_input();
-    void expression_transform(ASTNode * node);
+    ASTNode * expression_transform_add_emi(ASTNode * node);
     ASTNode * generateIncrementLoop(vector<int> iterations); 
     ASTNode * generateLoopNest(vector<int> iterations, ASTNode* body); 
 
