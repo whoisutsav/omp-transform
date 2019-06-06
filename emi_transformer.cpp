@@ -373,12 +373,3 @@ void EMI_Transformer::processEMI(ASTNode * root) {
   }
 }
 
-void EMI_Transformer::transform(ASTNode * root) {
-  if (root->type != BLK_STMT) {
-    cerr << "EMI_Transformer::transformer must be called with node of type BLK_STMT\n";
-    return;
-  }
-
-  dead_code_transform(root);
-  //expression_transform(root);
-}

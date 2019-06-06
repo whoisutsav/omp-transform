@@ -19,7 +19,6 @@ class Fuzzer {
     void transform(ASTNode* root);
     const float alterPct = 0.7; 
     const float composePct = 0.7; 
-    const float appendPct = 0.7;
 };
 
 #endif /* _FUZZER_H */

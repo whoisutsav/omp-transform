@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
   ASTNode * root = generateBaseBlock();
   EMI_Transformer transformer(time(0));
   transformer.insertIncrementLoop(root, 1);
+  //transformer.dead_code_transform(root);
   transformer.processEMI(root);
   printProgram(cout, root, transformer.get_inputs());
   return 0;
