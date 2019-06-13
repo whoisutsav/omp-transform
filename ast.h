@@ -158,4 +158,38 @@ class OpenMpTargetAST : OpenMpAST {
             : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
 };
 
+class ClauseOMP {
+  public:
+    virtual ~ClauseOMP();
+};
+
+class IfClauseOMP : public ClauseOMP {
+  std::unique_ptr<ExprAST> Cond;
+
+  public:
+    IfClauseOMP(std::unique_ptr<ExprAST> Cond) : Cond(std::move(Cond)) {}
+};
+
+class NumThreadsClauseOMP : public ClauseOMP {
+  int Num;
+
+  public:
+    NumThreadsClauseOMP(int num) : Num(num) {}
+};
+
+class CollapseClauseOMP : public ClauseOMP {
+  int Num;
+
+  public:
+    CollapseClauseOMP(int num) : Num(num) {}
+};
+
+class ReductionClauseOMP : public ClauseOMP {
+  std::string ReduceOp;
+  std::string Var;
+
+  public:
+    ReductionClauseOMP(const std::string *ReduceOp, std::string *Var) : ReduceOp(ReduceOp), Var(Var) {}
+};
+
 #endif /* _AST_H */
