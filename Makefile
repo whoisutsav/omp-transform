@@ -1,14 +1,17 @@
 CXX = clang++
-CXXFLAGS = -Wall -std=c++11
+CXXFLAGS = -Wall -std=c++11 -stdlib=libc++
 
-all: ast_node.o main.o fuzzer.o emi_transformer.o
+all: ast_node.o main.o fuzzer.o emi_transformer.o ast.o
 	$(CXX) $(CXXFLAGS) -o main main.o ast_node.o fuzzer.o emi_transformer.o
 
 main.o:
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
-ast_node.o: ast_node.h
-	$(CXX) $(CXXFLAGS) -c ast_node.cpp
+ast_node.o: ast_node.h 
+	$(CXX) $(CXXFLAGS) -c ast_node.cpp 
+
+ast.o: ast.h 
+	$(CXX) $(CXXFLAGS) -c ast.cpp 
 
 fuzzer.o: fuzzer.h
 	$(CXX) $(CXXFLAGS) -c fuzzer.cpp
