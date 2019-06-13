@@ -103,7 +103,6 @@ void printClause(ostream &o, int t, ASTNode * expr) {
   }
 }
 
-// TODO split string generation/stream printing
 void ASTNode::print(ostream &o, int tabLevel) const {
       if (isDirective()) {
         // print directive
@@ -117,15 +116,11 @@ void ASTNode::print(ostream &o, int tabLevel) const {
         }
         o << "\n";
 
-        // TODO can there be more than one child?
         // print child nodes
         for (ASTNode *j: children)
           j->print(o, tabLevel);
 
       } else switch (type) {
-        case UNOP:
-          // TODO 
-          break;
         case BINOP:
           (children[0])->print(o, tabLevel);
           o << operatorToStr(op);

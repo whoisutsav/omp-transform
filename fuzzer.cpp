@@ -113,7 +113,6 @@ ASTNode* buildTree() {
 }
 
 
-// TODO destroy tree properly
 ASTNode* Fuzzer::generateFragment() {
   ASTNode * tree = buildTree();
   transform(tree);

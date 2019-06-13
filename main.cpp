@@ -5,13 +5,16 @@
 using namespace std;
 
 
-void printProgram(ostream &o, ASTNode * root, vector<int> inputs) {
+void printEMIInputs(ostream &o, vector<int> inputs) {
   o << "//";
   for(int i=0; i<inputs.size(); i++) {
     o << " " << to_string(inputs[i]);
   }
 
   o << "\n";
+}
+
+void printProgram(ostream &o, ASTNode * root) {
   o << "#include <omp.h>" << "\n";
   o << "#include <assert.h>" << "\n";
   o << "#include <stdlib.h>" << "\n\n";
@@ -43,14 +46,13 @@ ASTNode * generateBaseBlock() {
 }
 
 
-
 int main(int argc, char* argv[])
 {
   ASTNode * root = generateBaseBlock();
   EMI_Transformer transformer(time(0));
   transformer.insertIncrementLoop(root, 1);
-  //transformer.dead_code_transform(root);
   transformer.processEMI(root);
-  printProgram(cout, root, transformer.get_inputs());
+  printEMIInputs(cout, transformer.get_inputs());
+  printProgram(cout, root);
   return 0;
 }

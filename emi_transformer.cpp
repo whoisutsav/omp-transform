@@ -5,7 +5,7 @@
 #include "fuzzer.h"
 #include "ast_node.h"
 
-// TODO allow more flexibility when num_iterations = 0
+// Helper - initialize loop parameters
 tuple <int, int, Operator, int> decFromIntMax(int num_iterations) {
   int initial_value = INT_MAX;
   int step = -1;
@@ -15,6 +15,7 @@ tuple <int, int, Operator, int> decFromIntMax(int num_iterations) {
   return make_tuple(initial_value, step, op, pred_rhs); 
 }
 
+// Helper - initialize loop parameters
 tuple <int, int, Operator, int> incFromIntMin(int num_iterations) {
   int initial_value = INT_MIN;
   int step = 1;
@@ -24,6 +25,7 @@ tuple <int, int, Operator, int> incFromIntMin(int num_iterations) {
   return make_tuple(initial_value, step, op, pred_rhs); 
 }
 
+// Helper - initialize loop parameters
 tuple <int, int, Operator, int> endAtIntMax(int num_iterations) {
   int initial_value = INT_MAX - num_iterations;
   int step = 1;
@@ -33,6 +35,7 @@ tuple <int, int, Operator, int> endAtIntMax(int num_iterations) {
   return make_tuple(initial_value, step, op, pred_rhs); 
 }
 
+// Helper - initialize loop parameters
 tuple <int, int, Operator, int> endAtIntMin(int num_iterations) {
   int initial_value = INT_MIN + num_iterations;
   int step = -1;
@@ -42,6 +45,7 @@ tuple <int, int, Operator, int> endAtIntMin(int num_iterations) {
   return make_tuple(initial_value, step, op, pred_rhs); 
 }
 
+// Helper - initialize loop parameters
 tuple <int, int, Operator, int> standardParams(int num_iterations) {
   int initial_value = 0;
   int step = 1;
@@ -68,6 +72,7 @@ tuple <int, int, Operator, int> generateLoopParameters(int num_iterations) {
   }
 }
 
+// Generate a loop nest using EMI, for the given sequence of iterations and body
 // iterations[0] = iterations of innermost loop, iterations[1] = level higher, etc.
 ASTNode * EMI_Transformer::generateLoopNest(vector<int> iterations, ASTNode* body) {
   ASTNode * current = body;
@@ -75,7 +80,7 @@ ASTNode * EMI_Transformer::generateLoopNest(vector<int> iterations, ASTNode* bod
   for(int i=0; i<iterations.size(); i++) {
     tuple <int, int, Operator, int> params = generateLoopParameters(iterations[i]);  
 
-    string emi_var_name = var_base + to_string(input_set.size() + 1); // TODO - fix
+    string emi_var_name = var_base + to_string(input_set.size() + 1); 
     int emi_var_val = get<0>(params);
 
     input_set.insert({emi_var_name, emi_var_val});
@@ -182,9 +187,6 @@ ASTNode * EMI_Transformer::generateIncrementLoop(vector<int> iterations) {
   return loop_nest;
 }
 
-// TODO need some way to keep track of where in the tree the counter initialization is 
-// Maybe merge into initialize counter routine
-// Also where to position the increment loop 
 void EMI_Transformer::insertIncrementLoop(ASTNode* blk_stmt, int n) {
 
   // Generate random loop structure
@@ -205,7 +207,6 @@ void EMI_Transformer::insertIncrementLoop(ASTNode* blk_stmt, int n) {
   switch(rand() % 2) {
     case 0:
       // collapse the loops 
-      // TODO - pick random value for collapse (instead of collapsing all) 
       omp_for->clauses.insert({OMPC_COLLAPSE, Fuzzer::getConstExpr(iterations.size())});
       break;
     case 1:
@@ -256,10 +257,6 @@ void EMI_Transformer::dead_code_transform(ASTNode * node) {
     default:
       break;
   } 
-
-  //for(ASTNode* i  : node->children)
-  //  dead_code_transform(i); 
-
 }
 
 // convert expressions to new expressions that are equivalent (modulo input)
@@ -363,8 +360,7 @@ void EMI_Transformer::processEMI(ASTNode * root) {
 
   root->children.insert(root->children.begin(), exp_stmt);
 
-  // add EMI vars
-  // TODO not efficient 
+  // Add EMI vars
   unordered_map<string, int>::const_iterator i;
   int input_index=1;
   for (i = input_set.begin(); i != input_set.end(); ++i) {
