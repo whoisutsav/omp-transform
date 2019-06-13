@@ -187,7 +187,7 @@ ASTNode * EMI_Transformer::generateIncrementLoop(vector<int> iterations) {
   return loop_nest;
 }
 
-void EMI_Transformer::insertIncrementLoop(ASTNode* blk_stmt, int n) {
+void EMI_Transformer::injectCounterIncrementLoopModInput(ASTNode* blk_stmt, int n) {
 
   // Generate random loop structure
   // For now, all outer loops have single iteration 
@@ -249,7 +249,7 @@ ASTNode * EMI_Transformer::create_dead_fragment_modulo_input() {
 
 
 // inject code that is "dead-by-construction" (modulo input) 
-void EMI_Transformer::dead_code_transform(ASTNode * node) {
+void EMI_Transformer::injectDeadCodeModInput(ASTNode * node) {
   switch(node->type) {
     case(BLK_STMT):
       node->children.insert(node->children.begin(), create_dead_fragment_modulo_input()); 

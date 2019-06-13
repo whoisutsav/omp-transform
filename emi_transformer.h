@@ -1,3 +1,7 @@
+// EMI transformer performs EMI-based transformations on a program
+// Specifically: dead code injection, and loop nest injection which
+// increments a counter to a known value 
+
 #ifndef _EMI_TRANSFORMER_H
 #define _EMI_TRANSFORMER_H
 
@@ -9,14 +13,15 @@ using namespace std;
 
 class EMI_Transformer {
   public:
-    void insertIncrementLoop(ASTNode* blk_stmt, int n);
+    void injectCounterIncrementLoopModInput(ASTNode* blk_stmt, int n);
+    void injectDeadCodeModInput(ASTNode * node);
     void processEMI(ASTNode* root);
-    void dead_code_transform(ASTNode * node);
     EMI_Transformer(int seed)
             : fuzzer(seed) 
             {srand(seed);}; 
     int expected_counter_output = 0;
     vector<int> get_inputs();
+
   private:
     Fuzzer fuzzer;  
     unordered_map<string, int> input_set;

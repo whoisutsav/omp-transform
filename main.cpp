@@ -50,7 +50,8 @@ int main(int argc, char* argv[])
 {
   ASTNode * root = generateBaseBlock();
   EMI_Transformer transformer(time(0));
-  transformer.insertIncrementLoop(root, 1);
+  transformer.injectCounterIncrementLoopModInput(root, 1);
+  transformer.injectDeadCodeModInput(root);
   transformer.processEMI(root);
   printEMIInputs(cout, transformer.get_inputs());
   printProgram(cout, root);

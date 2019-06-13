@@ -1,3 +1,5 @@
+// Fuzzer generates OpenMP code fragments (through random composition of directives)
+
 #ifndef _FUZZER_H
 #define _FUZZER_H
 
@@ -9,7 +11,6 @@ class Fuzzer {
   public:
     ASTNode* generateFragment();
 
-    // TODO move into helper class
     static ASTNode* getConstExpr(int ival);
     static ASTNode* getConstExpr(string sval);
 
