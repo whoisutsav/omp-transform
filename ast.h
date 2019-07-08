@@ -1,195 +1,186 @@
-#ifndef _AST_H
-#define _AST_H
-
-// Based on LLVM tutorial: https://llvm.org/docs/tutorial/LangImpl02.html
+#ifndef __H
+#define __H
 
 #include <vector>
 #include <string>
 
-class OpenMpClause {};
-
-// NodeAST - Base class for all AST nodes
-class NodeAST {
+class Node {
   public:
-    virtual ~NodeAST();
+    virtual ~Node();
 };
 
-class ExprAST : public NodeAST {
+class Expr : public Node {
 };
 
-class StmtAST : public NodeAST {
+class Stmt : public Node {
 }; 
 
-class OpenMpAST : public NodeAST {
-};
 
-class NumberExprAST : public ExprAST {
+class IntLiteral : public Expr {
   int Val;
 
   public: 
-    NumberExprAST(int Val) : Val(Val) {}
+    IntLiteral(int Val) : Val(Val) {}
 };
 
-class VariableExprAST : public ExprAST {
+class VarExpr : public Expr {
   std::string Name;
 
   public:
-    VariableExprAST(const std::string &Name) : Name(Name) {}
+    VarExpr(const std::string &Name) : Name(Name) {}
 };
 
-class BinaryExprAST : public ExprAST {
+class BinaryExpr : public Expr {
   char Op;
-  std::unique_ptr<ExprAST> LHS, RHS;
+  std::unique_ptr<Expr> LHS, RHS;
 
   public:
-    BinaryExprAST(char op, std::unique_ptr<ExprAST> LHS,
-                                    std::unique_ptr<ExprAST> RHS)
+    BinaryExpr(char op, std::unique_ptr<Expr> LHS,
+                                    std::unique_ptr<Expr> RHS)
                 : Op(op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
 };
 
-class AssignmentExprAST : public ExprAST {
-  std::unique_ptr<VariableExprAST> LHS;
-  std::unique_ptr<ExprAST> RHS;
+class ExprStmt : Stmt {
+  std::unique_ptr<Expr> Exp;
 
   public:
-    AssignmentExprAST(std::unique_ptr<VariableExprAST> LHS, std::unique_ptr<ExprAST> RHS)
-            : LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+    ExprStmt(std::unique_ptr<Expr> Exp) : Exp(std::move(Exp)) {}
 
 };
 
-class ExprStmtAST : StmtAST {
-  std::unique_ptr<ExprAST> Exp;
+class CompoundStmt : Stmt {
+  std::vector<std::unique_ptr<Stmt>> Statements;
 
   public:
-    ExprStmtAST(std::unique_ptr<ExprAST> Exp) : Exp(std::move(Exp)) {}
-
-};
-
-class BlockStmtAST : StmtAST {
-  std::vector<StmtAST> Statements;
-
-  public:
-    BlockStmtAST(std::vector<StmtAST> Statements)
+    CompoundStmt(std::vector<std::unique_ptr<Stmt>> Statements)
             : Statements(std::move(Statements)) {}
 };
 
-class RetStmtAST : StmtAST {
-  std::unique_ptr<ExprAST> Exp;
+class ReturnStmt : Stmt {
+  std::unique_ptr<Expr> Exp;
 
   public:
-    RetStmtAST(std::unique_ptr<ExprAST> Exp) : Exp(std::move(Exp)) {}
+    ReturnStmt(std::unique_ptr<Expr> Exp) : Exp(std::move(Exp)) {}
 };
 
-// Only support integers as of now
-class VariableDeclStmtAST : StmtAST {
-  std::unique_ptr<VariableExprAST> Var;
-  std::unique_ptr<ExprAST> AssignmentExpr;
+class DeclStmt : Stmt {
+  std::unique_ptr<VarExpr> Var;
+  std::unique_ptr<Expr> AssignmentExpr;
 
   public:
-    VariableDeclStmtAST(std::unique_ptr<VariableExprAST> Var) : Var(std::move(Var)) {}
-    VariableDeclStmtAST(std::unique_ptr<VariableExprAST> Var, std::unique_ptr<ExprAST> AssignmentExpr) 
+    DeclStmt(std::unique_ptr<VarExpr> Var) : Var(std::move(Var)) {}
+    DeclStmt(std::unique_ptr<VarExpr> Var, std::unique_ptr<Expr> AssignmentExpr) 
             : Var(std::move(Var)), AssignmentExpr(std::move(AssignmentExpr)) {}
 };
 
-class ForStmtAST : StmtAST {
-  std::unique_ptr<VariableDeclStmtAST> Init;
-  std::unique_ptr<ExprAST> Cond;
-  std::unique_ptr<StmtAST> Step;
-  std::unique_ptr<StmtAST> Body;
+class ForStmt : Stmt {
+  std::unique_ptr<DeclStmt> Init;
+  std::unique_ptr<Expr> Cond;
+  std::unique_ptr<Expr> Inc;
+  std::unique_ptr<Stmt> Body;
 
   public:
-    ForStmtAST(std::unique_ptr<VariableDeclStmtAST> Init, std::unique_ptr<ExprAST> Cond,
-                    std::unique_ptr<StmtAST> Step, std::unique_ptr<StmtAST> Body)
+    ForStmt(std::unique_ptr<DeclStmt> Init, std::unique_ptr<Expr> Cond,
+                    std::unique_ptr<Stmt> Inc, std::unique_ptr<Stmt> Body)
             : Init(std::move(Init)), Cond(std::move(Cond)), 
-            Step(std::move(Step)), Body(std::move(Body)) {}
+            Inc(std::move(Inc)), Body(std::move(Body)) {}
 };
 
-class OpenMpParallelAST : OpenMpAST {
-  std::vector<OpenMpClause> Clauses;
-  std::unique_ptr<StmtAST> Body;
+/////////////////////////////////////////////////////////////////
+// Open MP Constructs
+/////////////////////////////////////////////////////////////////
+
+class Directive : public Node {
+};
+
+class Clause {};
+
+class Parallel : Directive {
+  std::vector<std::unique_ptr<Clause>> Clauses;
+  std::unique_ptr<Stmt> Body;
 
   public:
-    OpenMpParallelAST(std::vector<OpenMpClause> Clauses, std::unique_ptr<StmtAST> Body)
+    Parallel(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
             : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
 };
 
-class OpenMpSingleAST : OpenMpAST {
-  std::vector<OpenMpClause> Clauses;
-  std::unique_ptr<StmtAST> Body;
+class Single : Directive {
+  std::vector<std::unique_ptr<Clause>> Clauses;
+  std::unique_ptr<Stmt> Body;
 
   public:
-    OpenMpSingleAST(std::vector<OpenMpClause> Clauses, std::unique_ptr<StmtAST> Body)
+    Single(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
             : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
 };
 
-class OpenMpCriticalAST : OpenMpAST {
-  std::vector<OpenMpClause> Clauses;
-  std::unique_ptr<StmtAST> Body;
+class Critical : Directive {
+  std::vector<std::unique_ptr<Clause>> Clauses;
+  std::unique_ptr<Stmt> Body;
 
   public:
-    OpenMpCriticalAST(std::vector<OpenMpClause> Clauses, std::unique_ptr<StmtAST> Body)
+    Critical(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
             : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
 };
 
-class OpenMpMasterAST : OpenMpAST {
-  std::vector<OpenMpClause> Clauses;
-  std::unique_ptr<StmtAST> Body;
+class Master : Directive {
+  std::vector<std::unique_ptr<Clause>> Clauses;
+  std::unique_ptr<Stmt> Body;
 
   public:
-    OpenMpMasterAST(std::vector<OpenMpClause> Clauses, std::unique_ptr<StmtAST> Body)
+    Master(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
             : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
 };
 
-class OpenMpParallelForAST : OpenMpAST {
-  std::vector<OpenMpClause> Clauses;
-  std::unique_ptr<StmtAST> Body;
+class ParallelFor : Directive {
+  std::vector<std::unique_ptr<Clause>> Clauses;
+  std::unique_ptr<Stmt> Body;
 
   public:
-    OpenMpParallelForAST(std::vector<OpenMpClause> Clauses, std::unique_ptr<StmtAST> Body)
+    ParallelFor(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
             : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
 };
 
-class OpenMpTargetAST : OpenMpAST {
-  std::vector<OpenMpClause> Clauses;
-  std::unique_ptr<StmtAST> Body;
+class Target : Directive {
+  std::vector<std::unique_ptr<Clause>> Clauses;
+  std::unique_ptr<Stmt> Body;
 
   public:
-    OpenMpTargetAST(std::vector<OpenMpClause> Clauses, std::unique_ptr<StmtAST> Body)
+    Target(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
             : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
 };
 
-class ClauseOMP {
+class Clause {
   public:
-    virtual ~ClauseOMP();
+    virtual ~Clause();
 };
 
-class IfClauseOMP : public ClauseOMP {
-  std::unique_ptr<ExprAST> Cond;
+class IfClause : public Clause {
+  std::unique_ptr<Expr> Cond;
 
   public:
-    IfClauseOMP(std::unique_ptr<ExprAST> Cond) : Cond(std::move(Cond)) {}
+    IfClause(std::unique_ptr<Expr> Cond) : Cond(std::move(Cond)) {}
 };
 
-class NumThreadsClauseOMP : public ClauseOMP {
+class NumThreadsClause : public Clause {
   int Num;
 
   public:
-    NumThreadsClauseOMP(int num) : Num(num) {}
+    NumThreadsClause(int num) : Num(num) {}
 };
 
-class CollapseClauseOMP : public ClauseOMP {
+class CollapseClause : public Clause {
   int Num;
 
   public:
-    CollapseClauseOMP(int num) : Num(num) {}
+    CollapseClause(int num) : Num(num) {}
 };
 
-class ReductionClauseOMP : public ClauseOMP {
+class ReductionClause : public Clause {
   std::string ReduceOp;
   std::string Var;
 
   public:
-    ReductionClauseOMP(const std::string *ReduceOp, std::string *Var) : ReduceOp(ReduceOp), Var(Var) {}
+    ReductionClause(const std::string *ReduceOp, std::string *Var) : ReduceOp(ReduceOp), Var(Var) {}
 };
 
-#endif /* _AST_H */
+#endif /* __H */
