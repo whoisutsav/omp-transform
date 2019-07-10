@@ -6,10 +6,14 @@ EMIContext::EMIContext(Node* root, CompoundStmt* main) : root(root), main(main) 
 }
 
 std::string EMIContext::addInput(int val) {
-  string result = "emi" + std::to_string(Inputs.size() + 1);
-  inputs.insert({result, val});
+  string identifier = "emi" + std::to_string(Inputs.size() + 1);
+  inputs.insert({identifier, val});
 
-  VarDeclStmt* varDeclStmt = ASTHelper::generateVarDeclStmt(inputs[i].first, inputs[i].second);
+  // TODO change to support command line input
+  VarDeclStmt* varDeclStmt = ASTHelper::generateVarDeclStmt(
+                  ASTHelper::generateVarRef(identifier),
+                  ASTHelper::generateIntLiteral(val)
+                  );
 
   main->Statements.insert(current, std::unique_ptr(varDeclStmt));
   if(current != main->Statements.end()) current++;

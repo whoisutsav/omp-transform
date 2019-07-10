@@ -38,7 +38,7 @@ void LoopTransformer::addLoop() {
   Node* current = body;
 
   int iterations;
-  int inc=1;
+  int incCount=1;
   while((iterations = rand() % 10) != 0) {
     LoopParams params = randLoopParameters(iterations);  
     std::string emiVarName = context->addInput(params.initialValue);
@@ -54,13 +54,13 @@ void LoopTransformer::addLoop() {
     ForStmt* forStmt = ASTHelper::generateForStmt(init, cond, inc, current);
 
     current = forStmt;
-    inc *= iterations;
+    incCount *= iterations;
   }
-  // inject for loop
-  // modify counterVal
-  return current;
+  // TODO wrap in parallelFor Directive
+  context->injectNode(current);
+  counterVal += incCount;
 }
 
-void LoopTransformer::getCounterValue() {
+int LoopTransformer::getCounterValue() {
   return counterValue;
 }
