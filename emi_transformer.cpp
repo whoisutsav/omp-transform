@@ -5,7 +5,6 @@
 #include "fuzzer.h"
 #include "ast_node.h"
 
-// TODO allow more flexibility when num_iterations = 0
 tuple <int, int, Operator, int> decFromIntMax(int num_iterations) {
   int initial_value = INT_MAX;
   int step = -1;

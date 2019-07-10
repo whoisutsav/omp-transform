@@ -1,5 +1,5 @@
-#ifndef __H
-#define __H
+#ifndef _AST_H
+#define _AST_H
 
 #include <vector>
 #include <string>
@@ -183,4 +183,4 @@ class ReductionClause : public Clause {
     ReductionClause(const std::string *ReduceOp, std::string *Var) : ReduceOp(ReduceOp), Var(Var) {}
 };
 
-#endif /* __H */
+#endif /* _AST_H */
