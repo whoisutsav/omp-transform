@@ -32,19 +32,19 @@ class VarExpr : public Expr {
 
 class BinaryExpr : public Expr {
   char Op;
-  std::unique_ptr<Expr> LHS, RHS;
+  Expr* LHS;
+  Expr* RHS;
 
   public:
-    BinaryExpr(char op, std::unique_ptr<Expr> LHS,
-                                    std::unique_ptr<Expr> RHS)
-                : Op(op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+    BinaryExpr(char op, Expr* LHS, Expr* RHS)
+                : Op(op), LHS(LHS), RHS(RHS) {}
 };
 
 class ExprStmt : Stmt {
-  std::unique_ptr<Expr> Exp;
+  Expr* Exp;
 
   public:
-    ExprStmt(std::unique_ptr<Expr> Exp) : Exp(std::move(Exp)) {}
+    ExprStmt(Expr* Exp) : Exp(Exp) {}
 
 };
 
@@ -53,43 +53,45 @@ class CompoundStmt : Stmt {
     // TODO - it appears we have made all other AST child node private, so probably 
     // this should be as well? Or make the others public. This is just a temporary
     // hack that it seems we should fix as soon as possible 
-    std::vector<std::unique_ptr<Stmt>> Statements;
+    std::vector<Stmt*> Statements;
 
-    CompoundStmt(std::vector<std::unique_ptr<Stmt>> Statements)
-            : Statements(std::move(Statements)) {}
-    std::vector<std::unique_ptr<Stmt>>::iterator begin() {
+    CompoundStmt(std::vector<Stmt*> Statements)
+            : Statements(Statements) {}
+    std::vector<Stmt*>::iterator begin() {
       return Statements.begin();
     }
 };
 
 class ReturnStmt : Stmt {
-  std::unique_ptr<Expr> Exp;
+  Expr* Exp;
 
   public:
-    ReturnStmt(std::unique_ptr<Expr> Exp) : Exp(std::move(Exp)) {}
+    ReturnStmt(Expr* Exp) : Exp(Exp) {}
 };
 
-class DeclStmt : Stmt {
-  std::unique_ptr<VarExpr> Var;
-  std::unique_ptr<Expr> AssignmentExpr;
+// TODO - DeclStmt and ForStmt were made to derive from public
+// classes in order to support polymorphism. Change needs to either
+// be propagated to all classes, or we must fix some way with private
+// classes
+class DeclStmt : public Stmt {
+  VarExpr* Var;
+  Expr* AssignmentExpr;
 
   public:
-    DeclStmt(std::unique_ptr<VarExpr> Var) : Var(std::move(Var)) {}
-    DeclStmt(std::unique_ptr<VarExpr> Var, std::unique_ptr<Expr> AssignmentExpr) 
-            : Var(std::move(Var)), AssignmentExpr(std::move(AssignmentExpr)) {}
+    DeclStmt(VarExpr* Var) : Var(Var) {}
+    DeclStmt(VarExpr* Var, Expr* AssignmentExpr) 
+            : Var(Var), AssignmentExpr(AssignmentExpr) {}
 };
 
-class ForStmt : Stmt {
-  std::unique_ptr<DeclStmt> Init;
-  std::unique_ptr<Expr> Cond;
-  std::unique_ptr<Expr> Inc;
-  std::unique_ptr<Stmt> Body;
+class ForStmt : public Stmt {
+  DeclStmt* Init;
+  Expr* Cond;
+  Expr* Inc;
+  Stmt* Body;
 
   public:
-    ForStmt(std::unique_ptr<DeclStmt> Init, std::unique_ptr<Expr> Cond,
-                    std::unique_ptr<Expr> Inc, std::unique_ptr<Stmt> Body)
-            : Init(std::move(Init)), Cond(std::move(Cond)), 
-            Inc(std::move(Inc)), Body(std::move(Body)) {}
+    ForStmt(DeclStmt* Init, Expr* Cond, Expr* Inc, Stmt* Body)
+            : Init(Init), Cond(Cond), Inc(Inc), Body(Body) {}
 };
 
 /////////////////////////////////////////////////////////////////
@@ -102,57 +104,57 @@ class Directive : public Node {
 class Clause;
 
 class Parallel : Directive {
-  std::vector<std::unique_ptr<Clause>> Clauses;
-  std::unique_ptr<Stmt> Body;
+  std::vector<Clause*> Clauses;
+  Stmt* Body;
 
   public:
-    Parallel(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
-            : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
+    Parallel(std::vector<Clause*> Clauses, Stmt* Body)
+            : Clauses(Clauses), Body(Body) {}
 };
 
 class Single : Directive {
-  std::vector<std::unique_ptr<Clause>> Clauses;
-  std::unique_ptr<Stmt> Body;
+  std::vector<Clause*> Clauses;
+  Stmt* Body;
 
   public:
-    Single(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
-            : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
+    Single(std::vector<Clause*> Clauses, Stmt* Body)
+            : Clauses(Clauses), Body(Body) {}
 };
 
 class Critical : Directive {
-  std::vector<std::unique_ptr<Clause>> Clauses;
-  std::unique_ptr<Stmt> Body;
+  std::vector<Clause*> Clauses;
+  Stmt* Body;
 
   public:
-    Critical(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
-            : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
+    Critical(std::vector<Clause*> Clauses, Stmt* Body)
+            : Clauses(Clauses), Body(Body) {}
 };
 
 class Master : Directive {
-  std::vector<std::unique_ptr<Clause>> Clauses;
-  std::unique_ptr<Stmt> Body;
+  std::vector<Clause*> Clauses;
+  Stmt* Body;
 
   public:
-    Master(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
-            : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
+    Master(std::vector<Clause*> Clauses, Stmt* Body)
+            : Clauses(Clauses), Body(Body) {}
 };
 
 class ParallelFor : Directive {
-  std::vector<std::unique_ptr<Clause>> Clauses;
-  std::unique_ptr<Stmt> Body;
+  std::vector<Clause*> Clauses;
+  Stmt* Body;
 
   public:
-    ParallelFor(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
-            : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
+    ParallelFor(std::vector<Clause*> Clauses, Stmt* Body)
+            : Clauses(Clauses), Body(Body) {}
 };
 
 class Target : Directive {
-  std::vector<std::unique_ptr<Clause>> Clauses;
-  std::unique_ptr<Stmt> Body;
+  std::vector<Clause*> Clauses;
+  Stmt* Body;
 
   public:
-    Target(std::vector<std::unique_ptr<Clause>> Clauses, std::unique_ptr<Stmt> Body)
-            : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
+    Target(std::vector<Clause*> Clauses, Stmt* Body)
+            : Clauses(Clauses), Body(Body) {}
 };
 
 /////////////////////////////////////////////////////////////////
@@ -165,10 +167,10 @@ class Clause {
 };
 
 class IfClause : public Clause {
-  std::unique_ptr<Expr> Cond;
+  Expr* Cond;
 
   public:
-    IfClause(std::unique_ptr<Expr> Cond) : Cond(std::move(Cond)) {}
+    IfClause(Expr* Cond) : Cond(Cond) {}
 };
 
 class NumThreadsClause : public Clause {

@@ -15,7 +15,7 @@ class EMIContext {
     Node* root;
     CompoundStmt* main;
     std::vector<std::pair<std::string, int>> inputs;
-    std::vector<std::unique_ptr<Stmt>>::iterator current;
+    std::vector<Stmt*>::iterator current;
 };
 
 #endif /* _EMI_CONTEXT_H */

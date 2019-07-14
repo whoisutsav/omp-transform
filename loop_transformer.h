@@ -13,6 +13,6 @@ class LoopTransformer {
     EMIContext* context;
     std::string counterIdentifier;
     int counterVal;
-}
+};
 
 #endif /* _LOOP_TRANSFORMER_H */
