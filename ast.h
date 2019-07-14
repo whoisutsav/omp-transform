@@ -49,11 +49,17 @@ class ExprStmt : Stmt {
 };
 
 class CompoundStmt : Stmt {
-  std::vector<std::unique_ptr<Stmt>> Statements;
-
   public:
+    // TODO - it appears we have made all other AST child node private, so probably 
+    // this should be as well? Or make the others public. This is just a temporary
+    // hack that it seems we should fix as soon as possible 
+    std::vector<std::unique_ptr<Stmt>> Statements;
+
     CompoundStmt(std::vector<std::unique_ptr<Stmt>> Statements)
             : Statements(std::move(Statements)) {}
+    std::vector<std::unique_ptr<Stmt>>::iterator begin() {
+      return Statements.begin();
+    }
 };
 
 class ReturnStmt : Stmt {
@@ -81,7 +87,7 @@ class ForStmt : Stmt {
 
   public:
     ForStmt(std::unique_ptr<DeclStmt> Init, std::unique_ptr<Expr> Cond,
-                    std::unique_ptr<Stmt> Inc, std::unique_ptr<Stmt> Body)
+                    std::unique_ptr<Expr> Inc, std::unique_ptr<Stmt> Body)
             : Init(std::move(Init)), Cond(std::move(Cond)), 
             Inc(std::move(Inc)), Body(std::move(Body)) {}
 };
@@ -93,7 +99,7 @@ class ForStmt : Stmt {
 class Directive : public Node {
 };
 
-class Clause {};
+class Clause;
 
 class Parallel : Directive {
   std::vector<std::unique_ptr<Clause>> Clauses;
@@ -149,6 +155,10 @@ class Target : Directive {
             : Clauses(std::move(Clauses)), Body(std::move(Body)) {}
 };
 
+/////////////////////////////////////////////////////////////////
+// Open MP Clauses 
+/////////////////////////////////////////////////////////////////
+
 class Clause {
   public:
     virtual ~Clause();
@@ -180,7 +190,7 @@ class ReductionClause : public Clause {
   std::string Var;
 
   public:
-    ReductionClause(const std::string *ReduceOp, std::string *Var) : ReduceOp(ReduceOp), Var(Var) {}
+    ReductionClause(const std::string& ReduceOp, std::string& Var) : ReduceOp(ReduceOp), Var(Var) {}
 };
 
 #endif /* _AST_H */

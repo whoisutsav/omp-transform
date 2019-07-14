@@ -30,17 +30,22 @@ LoopParams randLoopParameters(int numIterations) {
   }
 }
 
+vector<int> randNest() {
+  return {1, 1, 3, 5, 2};
+}
+
 void LoopTransformer::addLoop() {
   Stmt* body = ASTHelper::generateBinOp(
                   ASTHelper::generateVarRef(counterIdentifier),
                   ASTHelper::generateBinOp(ASTHelper::generateVarRef(counterIdentifier), ASTHelper::generateIntLiteral(1), '+'),
-                  '=');
+                  '='
+                  );
   Node* current = body;
 
-  int iterations;
+  vector<int> nest = randNest();
   int incCount=1;
-  while((iterations = rand() % 10) != 0) {
-    LoopParams params = randLoopParameters(iterations);  
+  for(int i=0; i<nest.size(); i++) {
+    LoopParams params = randLoopParameters(nest[i]);  
     std::string emiVarName = context->addInput(params.initialValue);
 
     std::string iteratorRef = "i" + std::to_string(i);
@@ -54,7 +59,7 @@ void LoopTransformer::addLoop() {
     ForStmt* forStmt = ASTHelper::generateForStmt(init, cond, inc, current);
 
     current = forStmt;
-    incCount *= iterations;
+    incCount *= nest[i];
   }
   // TODO wrap in parallelFor Directive
   context->injectNode(current);
