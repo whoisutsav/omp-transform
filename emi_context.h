@@ -7,17 +7,15 @@
 
 class EMIContext {
   public:
-    EMIContext(Node* root, CompoundStmt* main) : root(root), main(main) {}
+    EMIContext(Node* root, CompoundStmt* main);
     std::string addInput(int val);
-    Node* getRoot();
-    CompoundStmt* getMain();
-    Node* generateEMIAST();
+    void injectStmt(Stmt* stmt);
 
   private:
     Node* root;
     CompoundStmt* main;
-    vector<std::pair<string, int>> inputs;
-    int numGenerated;
+    std::vector<std::pair<std::string, int>> inputs;
+    std::vector<Stmt*>::iterator current;
 };
 
 #endif /* _EMI_CONTEXT_H */
