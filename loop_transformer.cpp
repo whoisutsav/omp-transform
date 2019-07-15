@@ -5,7 +5,7 @@
 LoopTransformer::LoopTransformer(EMIContext* context) : context(context) {
   counterIdentifier = "loopCounter";
   counterVal = 0;
-  DeclStmt* declStmt = ASTHelper::createDeclStmt(ASTHelper::createVarExpr(counterIdentifier), ASTHelper::createIntLiteral(0));
+  DeclStmt* declStmt = DeclStmt::create(VarExpr::create(counterIdentifier), IntLiteral::create(0));
   context->injectStmt(declStmt);
 }
 
@@ -36,10 +36,10 @@ std::vector<int> randNest() {
 }
 
 void LoopTransformer::addLoop() {
-  Stmt* body = ASTHelper::createExprStmt(
-                  ASTHelper::createBinaryExpr(
-                    ASTHelper::createVarExpr(counterIdentifier),
-                    ASTHelper::createBinaryExpr(ASTHelper::createVarExpr(counterIdentifier), ASTHelper::createIntLiteral(1), '+'),
+  Stmt* body = ExprStmt::create(
+                  BinaryExpr::create(
+                    VarExpr::create(counterIdentifier),
+                    BinaryExpr::create(VarExpr::create(counterIdentifier), IntLiteral::create(1), '+'),
                     '='
                   ));
   Stmt* current = body;
@@ -51,14 +51,14 @@ void LoopTransformer::addLoop() {
     std::string emiVarName = context->addInput(params.initialValue);
 
     std::string iteratorRef = "i" + std::to_string(i);
-    DeclStmt* init = ASTHelper::createDeclStmt(ASTHelper::createVarExpr(iteratorRef), ASTHelper::createVarExpr(emiVarName));
-    Expr* cond = ASTHelper::createBinaryExpr(ASTHelper::createVarExpr(iteratorRef), ASTHelper::createIntLiteral(params.predRHS), params.op);
-    Expr* inc = ASTHelper::createBinaryExpr(
-                    ASTHelper::createVarExpr(iteratorRef), 
-                    ASTHelper::createBinaryExpr(ASTHelper::createVarExpr(iteratorRef), ASTHelper::createIntLiteral(params.step), '+'),
+    DeclStmt* init = DeclStmt::create(VarExpr::create(iteratorRef), VarExpr::create(emiVarName));
+    Expr* cond = BinaryExpr::create(VarExpr::create(iteratorRef), IntLiteral::create(params.predRHS), params.op);
+    Expr* inc = BinaryExpr::create(
+                    VarExpr::create(iteratorRef), 
+                    BinaryExpr::create(VarExpr::create(iteratorRef), IntLiteral::create(params.step), '+'),
                     '=');
 
-    ForStmt* forStmt = ASTHelper::createForStmt(init, cond, inc, current);
+    ForStmt* forStmt = ForStmt::create(init, cond, inc, current);
 
     current = forStmt;
     incCount *= nest[i];

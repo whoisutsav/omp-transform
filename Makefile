@@ -7,14 +7,14 @@ all: ast_node.o main.o fuzzer.o emi_transformer.o ast.o
 main.o:
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
-loop_transformer.o: loop_transformer.h 
+loop_transformer.o: loop_transformer.h ast.h
 	$(CXX) $(CXXFLAGS) -c loop_transformer.cpp 
 
-ast.o: ast.h 
-	$(CXX) $(CXXFLAGS) -c ast.cpp 
-
-emi_context.o: emi_context.h
+emi_context.o: emi_context.h ast.h
 	$(CXX) $(CXXFLAGS) -c emi_context.cpp
 
+code_generator.o: code_generator.h ast.h
+	$(CXX) $(CXXFLAGS) -c code_generator.cpp
+
 clean:
-	rm -f ast.o 
+	rm -f emi_context.o loop_transformer.o code_generator.o

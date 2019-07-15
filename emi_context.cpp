@@ -10,19 +10,19 @@ std::string EMIContext::addInput(int val) {
   inputs.push_back({identifier, val});
 
   // TODO change to support command line input
-  DeclStmt* declStmt = ASTHelper::createDeclStmt(
-                  ASTHelper::createVarExpr(identifier),
-                  ASTHelper::createIntLiteral(val)
+  DeclStmt* declStmt = DeclStmt::create(
+                  VarExpr::create(identifier),
+                  IntLiteral::create(val)
                   );
 
-  main->Statements.insert(current, declStmt);
-  if(current != main->Statements.end()) current++;
+  main->getStatements().insert(current, declStmt);
+  if(current != main->getStatements().end()) current++;
 
   return identifier;
 }
 
 void EMIContext::injectStmt(Stmt* stmt) {
-  main->Statements.insert(current, stmt);
-  if(current != main->Statements.end()) current++;
+  main->getStatements().insert(current, stmt);
+  if(current != main->getStatements().end()) current++;
 }
 

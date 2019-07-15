@@ -1,3 +1,5 @@
+// Adapted from Clang AST (https://clang.llvm.org)
+
 #ifndef _AST_H
 #define _AST_H
 
@@ -21,6 +23,9 @@ class IntLiteral : public Expr {
 
   public: 
     IntLiteral(int Val) : Val(Val) {}
+    static IntLiteral* create(int Val);
+    int getValue() { return Val; }
+    
 };
 
 class VarExpr : public Expr {
@@ -28,6 +33,8 @@ class VarExpr : public Expr {
 
   public:
     VarExpr(const std::string &Name) : Name(Name) {}
+    static VarExpr* create(std::string Name);
+    std::string getName() { return Name; }
 };
 
 class BinaryExpr : public Expr {
@@ -38,41 +45,42 @@ class BinaryExpr : public Expr {
   public:
     BinaryExpr(char op, Expr* LHS, Expr* RHS)
                 : Op(op), LHS(LHS), RHS(RHS) {}
+    static BinaryExpr* create(Expr* LHS, Expr* RHS, char op);
+    Expr* getLHS() { return LHS; }
+    Expr* getRHS() { return RHS; }
+    char getOp() { return Op; }
 };
 
-class ExprStmt : Stmt {
+class ExprStmt : public Stmt {
   Expr* Exp;
 
   public:
     ExprStmt(Expr* Exp) : Exp(Exp) {}
+    static ExprStmt* create(Expr* expr);
+    Expr* getExpr() { return Exp; }
 
 };
 
-class CompoundStmt : Stmt {
-  public:
-    // TODO - it appears we have made all other AST child node private, so probably 
-    // this should be as well? Or make the others public. This is just a temporary
-    // hack that it seems we should fix as soon as possible 
+class CompoundStmt : public Stmt {
     std::vector<Stmt*> Statements;
 
+  public:
     CompoundStmt(std::vector<Stmt*> Statements)
             : Statements(Statements) {}
     std::vector<Stmt*>::iterator begin() {
       return Statements.begin();
     }
+    std::vector<Stmt*> getStatements() { return Statements; }
 };
 
-class ReturnStmt : Stmt {
+class ReturnStmt : public Stmt {
   Expr* Exp;
 
   public:
     ReturnStmt(Expr* Exp) : Exp(Exp) {}
+    Expr* getRetValue() { return Exp; }
 };
 
-// TODO - DeclStmt and ForStmt were made to derive from public
-// classes in order to support polymorphism. Change needs to either
-// be propagated to all classes, or we must fix some way with private
-// classes
 class DeclStmt : public Stmt {
   VarExpr* Var;
   Expr* AssignmentExpr;
@@ -81,6 +89,10 @@ class DeclStmt : public Stmt {
     DeclStmt(VarExpr* Var) : Var(Var) {}
     DeclStmt(VarExpr* Var, Expr* AssignmentExpr) 
             : Var(Var), AssignmentExpr(AssignmentExpr) {}
+    static DeclStmt* create(VarExpr* var, Expr* assignmentExpr);
+    VarExpr* getVar() { return Var; }
+    Expr* getValue() { return AssignmentExpr; }
+
 };
 
 class ForStmt : public Stmt {
@@ -92,6 +104,11 @@ class ForStmt : public Stmt {
   public:
     ForStmt(DeclStmt* Init, Expr* Cond, Expr* Inc, Stmt* Body)
             : Init(Init), Cond(Cond), Inc(Inc), Body(Body) {}
+    static ForStmt* create(DeclStmt* init, Expr* cond, Expr* inc, Stmt* body);
+    DeclStmt* getInit() { return Init; }
+    Expr* getCond() { return Cond; }
+    Expr* getInc() { return Inc; }
+    Stmt* getBody() { return Body; }
 };
 
 /////////////////////////////////////////////////////////////////
@@ -103,7 +120,7 @@ class Directive : public Node {
 
 class Clause;
 
-class Parallel : Directive {
+class Parallel : public Directive {
   std::vector<Clause*> Clauses;
   Stmt* Body;
 
@@ -112,7 +129,7 @@ class Parallel : Directive {
             : Clauses(Clauses), Body(Body) {}
 };
 
-class Single : Directive {
+class Single : public Directive {
   std::vector<Clause*> Clauses;
   Stmt* Body;
 
@@ -121,7 +138,7 @@ class Single : Directive {
             : Clauses(Clauses), Body(Body) {}
 };
 
-class Critical : Directive {
+class Critical : public Directive {
   std::vector<Clause*> Clauses;
   Stmt* Body;
 
@@ -130,7 +147,7 @@ class Critical : Directive {
             : Clauses(Clauses), Body(Body) {}
 };
 
-class Master : Directive {
+class Master : public Directive {
   std::vector<Clause*> Clauses;
   Stmt* Body;
 
@@ -139,7 +156,7 @@ class Master : Directive {
             : Clauses(Clauses), Body(Body) {}
 };
 
-class ParallelFor : Directive {
+class ParallelFor : public Directive {
   std::vector<Clause*> Clauses;
   Stmt* Body;
 
@@ -148,7 +165,7 @@ class ParallelFor : Directive {
             : Clauses(Clauses), Body(Body) {}
 };
 
-class Target : Directive {
+class Target : public Directive {
   std::vector<Clause*> Clauses;
   Stmt* Body;
 
