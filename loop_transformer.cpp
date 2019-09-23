@@ -2,10 +2,8 @@
 #include "emi_program.h"
 #include "util.h"
 
-LoopTransformer::LoopTransformer(EmiProgram* program) : program(program) {
-  counterIdentifier = "loopCounter";
-  counterVal = 0;
-  DeclStmt* declStmt = DeclStmt::create("int", VarExpr::create(counterIdentifier), IntLiteral::create(0));
+void initializeLoopCounter(EmiProgram* program, std::string counterName) {
+  DeclStmt* declStmt = DeclStmt::create("int", VarExpr::create(counterName), IntLiteral::create(0));
   program->injectStmt(declStmt);
 }
 
@@ -35,11 +33,11 @@ std::vector<int> randNest() {
   return {1, 1, 3, 5, 2};
 }
 
-void LoopTransformer::addLoop() {
+void injectLoopNest(EmiProgram* program, std::string counterName, int numIterations) {
   Stmt* body = ExprStmt::create(
                   BinaryExpr::create(
-                    VarExpr::create(counterIdentifier),
-                    BinaryExpr::create(VarExpr::create(counterIdentifier), IntLiteral::create(1), '+'),
+                    VarExpr::create(counterName),
+                    BinaryExpr::create(VarExpr::create(counterName), IntLiteral::create(1), '+'),
                     '='
                   ));
   Stmt* current = body;
@@ -66,9 +64,11 @@ void LoopTransformer::addLoop() {
   }
   // TODO wrap in parallelFor Directive
   program->injectStmt(current);
-  counterVal += incCount;
 }
 
-int LoopTransformer::getCounterValue() {
-  return counterVal;
+void LoopTransformer::emiLoopTransform(EmiProgram* program, std::string counterName, int numIterations) {
+  initializeLoopCounter(program, counterName);
+  injectLoopNest(program, counterName, numIterations);
+  // ADD assert?
 }
+

@@ -5,17 +5,7 @@
 
 class LoopTransformer {
   public:
-    LoopTransformer(EmiProgram* program); 
-    void addLoop();
-    int getCounterValue();
-    // CHANGE TO:
-    //static void addLoop(EmiProgram* program, std::string counterName, int numIterations);
-    // (Or return number of iterations)
-
-  private:
-    EmiProgram* program;
-    std::string counterIdentifier;
-    int counterVal;
+    static void emiLoopTransform(EmiProgram* program, std::string counterName, int numIterations); 
 };
 
 #endif /* _LOOP_TRANSFORMER_H */
