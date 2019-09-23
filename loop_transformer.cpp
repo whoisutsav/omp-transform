@@ -1,12 +1,12 @@
 #include "loop_transformer.h"
-#include "emi_context.h"
-#include "ast_helper.h"
+#include "emi_program.h"
+#include "util.h"
 
-LoopTransformer::LoopTransformer(EMIContext* context) : context(context) {
+LoopTransformer::LoopTransformer(EmiProgram* program) : program(program) {
   counterIdentifier = "loopCounter";
   counterVal = 0;
-  DeclStmt* declStmt = DeclStmt::create(VarExpr::create(counterIdentifier), IntLiteral::create(0));
-  context->injectStmt(declStmt);
+  DeclStmt* declStmt = DeclStmt::create("int", VarExpr::create(counterIdentifier), IntLiteral::create(0));
+  program->injectStmt(declStmt);
 }
 
 struct LoopParams {
@@ -48,10 +48,11 @@ void LoopTransformer::addLoop() {
   int incCount=1;
   for(int i=0; i<nest.size(); i++) {
     LoopParams params = randLoopParameters(nest[i]);  
-    std::string emiVarName = context->addInput(params.initialValue);
+    std::string emiVar = generateRandomAlphaNumericString(10); 
+    program->injectInputAssignment(emiVar, params.initialValue);
 
     std::string iteratorRef = "i" + std::to_string(i);
-    DeclStmt* init = DeclStmt::create(VarExpr::create(iteratorRef), VarExpr::create(emiVarName));
+    DeclStmt* init = DeclStmt::create("int", VarExpr::create(iteratorRef), VarExpr::create(emiVar));
     Expr* cond = BinaryExpr::create(VarExpr::create(iteratorRef), IntLiteral::create(params.predRHS), params.op);
     Expr* inc = BinaryExpr::create(
                     VarExpr::create(iteratorRef), 
@@ -64,7 +65,7 @@ void LoopTransformer::addLoop() {
     incCount *= nest[i];
   }
   // TODO wrap in parallelFor Directive
-  context->injectStmt(current);
+  program->injectStmt(current);
   counterVal += incCount;
 }
 

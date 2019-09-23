@@ -67,9 +67,7 @@ class CompoundStmt : public Stmt {
   public:
     CompoundStmt(std::vector<Stmt*> Statements)
             : Statements(Statements) {}
-    std::vector<Stmt*>::iterator begin() {
-      return Statements.begin();
-    }
+    static CompoundStmt* create();
     std::vector<Stmt*> getStatements() { return Statements; }
 };
 
@@ -81,18 +79,30 @@ class ReturnStmt : public Stmt {
     Expr* getRetValue() { return Exp; }
 };
 
-class DeclStmt : public Stmt {
+class ParamDecl : public Node {
+  std::string Type;
   VarExpr* Var;
-  Expr* AssignmentExpr;
 
   public:
-    DeclStmt(VarExpr* Var) : Var(Var) {}
-    DeclStmt(VarExpr* Var, Expr* AssignmentExpr) 
-            : Var(Var), AssignmentExpr(AssignmentExpr) {}
-    static DeclStmt* create(VarExpr* var, Expr* assignmentExpr);
+    ParamDecl(std::string Type, VarExpr* Var) : Type(Type), Var(Var) {}
+    static ParamDecl* create(std::string Type, VarExpr* var);
+    std::string getType() { return Type; }
     VarExpr* getVar() { return Var; }
-    Expr* getValue() { return AssignmentExpr; }
+};
 
+class DeclStmt : public Stmt {
+  std::string Type;
+  VarExpr* Var;
+  Expr* Init;
+
+  public:
+    DeclStmt(std::string Type, VarExpr* Var) : Type(Type), Var(Var) {}
+    DeclStmt(std::string Type, VarExpr* Var, Expr* Init) 
+            : Type(Type), Var(Var), Init(Init) {}
+    static DeclStmt* create(std::string Type, VarExpr* var, Expr* Init);
+    std::string getType() { return Type; }
+    VarExpr* getVar() { return Var; }
+    Expr* getValue() { return Init; }
 };
 
 class ForStmt : public Stmt {
@@ -109,6 +119,20 @@ class ForStmt : public Stmt {
     Expr* getCond() { return Cond; }
     Expr* getInc() { return Inc; }
     Stmt* getBody() { return Body; }
+};
+
+class FunctionDecl : public Node {
+  std::string Name;
+  std::vector<ParamDecl*> Params;
+  CompoundStmt* Body;
+
+  public:
+    FunctionDecl(std::string Name, std::vector<ParamDecl*> Params, CompoundStmt* Body)
+            : Name(Name), Params(Params), Body(Body) {}
+    static FunctionDecl* create(std::string Name, std::vector<ParamDecl*> Params, CompoundStmt* Body);
+    std::string getName() { return Name; }
+    std::vector<ParamDecl*> getParams() { return Params; }
+    CompoundStmt* getBody() { return Body; }
 };
 
 /////////////////////////////////////////////////////////////////
