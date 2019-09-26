@@ -1,17 +1,21 @@
 #include "ast.h"
 #include "emi_program.h"
 
-EmiProgram::EmiProgram(CompoundStmt* root, CompoundStmt* mainBody) : root(root), mainBody(mainBody) {
-  current = mainBody->getStatements().begin();
+EmiProgram::EmiProgram(FunctionDecl* main) : main(main) {
+  current = main->getBody()->getStatements().begin();
 }
 
 EmiProgram* EmiProgram::generateEmptyProgram() {
-  CompoundStmt* root = CompoundStmt::create(); 
-  CompoundStmt* mainBody = CompoundStmt::create(); 
+  FunctionDecl* main = FunctionDecl::create(
+                 "int",
+                 "main",
+                 { 
+                    ParamDecl::create("int", VarExpr::create("argc")), 
+                    ParamDecl::create("char**", VarExpr::create("argv")),
+                 },
+                 CompoundStmt::create());
 
-  root->getStatements().push_back(mainBody);
-
-  EmiProgram* context = new EmiProgram(root, mainBody);
+  EmiProgram* context = new EmiProgram(main);
     
   return context;
 }
@@ -26,12 +30,15 @@ void EmiProgram::injectInputAssignment(std::string identifier, int val) {
                   IntLiteral::create(val)
                   );
 
-  mainBody->getStatements().insert(current, declStmt);
-  if(current != mainBody->getStatements().end()) current++;
+  main->getBody()->getStatements().insert(current, declStmt);
+  if(current != main->getBody()->getStatements().end()) current++;
 }
 
 void EmiProgram::injectStmt(Stmt* stmt) {
-  mainBody->getStatements().insert(current, stmt);
-  if(current != mainBody->getStatements().end()) current++;
+  main->getBody()->getStatements().insert(current, stmt);
+  if(current != main->getBody()->getStatements().end()) current++;
 }
 
+FunctionDecl* EmiProgram::getMain() {
+  return main;
+}

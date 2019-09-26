@@ -1,3 +1,4 @@
+#include <iostream>
 #include "code_generator.h"
 #include "ast.h"
 
@@ -52,6 +53,27 @@ std::string generateForStmt(ForStmt* forStmt) {
           CodeGenerator::generate(forStmt->getBody());
 }
 
+std::string generateParamDecl(ParamDecl* paramDecl) {
+  return paramDecl->getType() + " " + CodeGenerator::generate(paramDecl->getVar());
+}
+
+std::string generateFunctionDecl(FunctionDecl* functionDecl) {
+  std::string paramList = "";
+
+  for(int i=0; i<functionDecl->getParams().size(); i++) {
+    paramList += CodeGenerator::generate(functionDecl->getParams()[i]);
+
+    if (i != functionDecl->getParams().size() - 1)
+      paramList += ", ";
+  }
+
+  return functionDecl->getReturnType() + " " +
+         functionDecl->getName() + "(" +
+         paramList +
+         ")\n" +
+         CodeGenerator::generate(functionDecl->getBody());
+}
+
 std::string CodeGenerator::generate(Node* root) {
   IntLiteral* intLiteral = dynamic_cast<IntLiteral*>(root);
   if (intLiteral) return generateIntLiteral(intLiteral);
@@ -76,6 +98,12 @@ std::string CodeGenerator::generate(Node* root) {
 
   ForStmt* forStmt = dynamic_cast<ForStmt*>(root);
   if (forStmt) return generateForStmt(forStmt);
+
+  ParamDecl* paramDecl = dynamic_cast<ParamDecl*>(root);
+  if (paramDecl)  return generateParamDecl(paramDecl);      
+
+  FunctionDecl* functionDecl = dynamic_cast<FunctionDecl*>(root);
+  if (functionDecl) return generateFunctionDecl(functionDecl);
 
   return "";
 }

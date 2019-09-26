@@ -8,7 +8,7 @@
 
 class Node {
   public:
-    virtual ~Node();
+    virtual ~Node() = default;
 };
 
 class Expr : public Node {
@@ -23,7 +23,7 @@ class IntLiteral : public Expr {
 
   public: 
     IntLiteral(int Val) : Val(Val) {}
-    static IntLiteral* create(int Val);
+    static IntLiteral* create(int Val) { return new IntLiteral(Val); }
     int getValue() { return Val; }
     
 };
@@ -33,7 +33,7 @@ class VarExpr : public Expr {
 
   public:
     VarExpr(const std::string &Name) : Name(Name) {}
-    static VarExpr* create(std::string Name);
+    static VarExpr* create(std::string Name) { return new VarExpr(Name); }
     std::string getName() { return Name; }
 };
 
@@ -43,9 +43,9 @@ class BinaryExpr : public Expr {
   Expr* RHS;
 
   public:
-    BinaryExpr(char op, Expr* LHS, Expr* RHS)
-                : Op(op), LHS(LHS), RHS(RHS) {}
-    static BinaryExpr* create(Expr* LHS, Expr* RHS, char op);
+    BinaryExpr(Expr* LHS, Expr* RHS, char Op)
+                : Op(Op), LHS(LHS), RHS(RHS) {}
+    static BinaryExpr* create(Expr* LHS, Expr* RHS, char Op) { return new BinaryExpr(LHS, RHS, Op); }
     Expr* getLHS() { return LHS; }
     Expr* getRHS() { return RHS; }
     char getOp() { return Op; }
@@ -56,7 +56,7 @@ class ExprStmt : public Stmt {
 
   public:
     ExprStmt(Expr* Exp) : Exp(Exp) {}
-    static ExprStmt* create(Expr* expr);
+    static ExprStmt* create(Expr* Exp) { return new ExprStmt(Exp); }
     Expr* getExpr() { return Exp; }
 
 };
@@ -66,8 +66,8 @@ class CompoundStmt : public Stmt {
 
   public:
     CompoundStmt(std::vector<Stmt*> Statements)
-            : Statements(Statements) {}
-    static CompoundStmt* create();
+            : Statements(std::move(Statements)) {}
+    static CompoundStmt* create() { return new CompoundStmt({}); }
     std::vector<Stmt*> getStatements() { return Statements; }
 };
 
@@ -79,17 +79,6 @@ class ReturnStmt : public Stmt {
     Expr* getRetValue() { return Exp; }
 };
 
-class ParamDecl : public Node {
-  std::string Type;
-  VarExpr* Var;
-
-  public:
-    ParamDecl(std::string Type, VarExpr* Var) : Type(Type), Var(Var) {}
-    static ParamDecl* create(std::string Type, VarExpr* var);
-    std::string getType() { return Type; }
-    VarExpr* getVar() { return Var; }
-};
-
 class DeclStmt : public Stmt {
   std::string Type;
   VarExpr* Var;
@@ -99,7 +88,7 @@ class DeclStmt : public Stmt {
     DeclStmt(std::string Type, VarExpr* Var) : Type(Type), Var(Var) {}
     DeclStmt(std::string Type, VarExpr* Var, Expr* Init) 
             : Type(Type), Var(Var), Init(Init) {}
-    static DeclStmt* create(std::string Type, VarExpr* var, Expr* Init);
+    static DeclStmt* create(std::string Type, VarExpr* Var, Expr* Init) { return new DeclStmt(Type, Var, Init); }
     std::string getType() { return Type; }
     VarExpr* getVar() { return Var; }
     Expr* getValue() { return Init; }
@@ -114,22 +103,35 @@ class ForStmt : public Stmt {
   public:
     ForStmt(DeclStmt* Init, Expr* Cond, Expr* Inc, Stmt* Body)
             : Init(Init), Cond(Cond), Inc(Inc), Body(Body) {}
-    static ForStmt* create(DeclStmt* init, Expr* cond, Expr* inc, Stmt* body);
+    static ForStmt* create(DeclStmt* Init, Expr* Cond, Expr* Inc, Stmt* Body) { return new ForStmt(Init, Cond, Inc, Body); }
     DeclStmt* getInit() { return Init; }
     Expr* getCond() { return Cond; }
     Expr* getInc() { return Inc; }
     Stmt* getBody() { return Body; }
 };
 
-class FunctionDecl : public Node {
+class ParamDecl : public Node {
+  std::string Type;
+  VarExpr* Var;
+
+  public:
+    ParamDecl(std::string Type, VarExpr* Var) : Type(Type), Var(Var) {}
+    static ParamDecl* create(std::string Type, VarExpr* Var) { return new ParamDecl(Type, Var); }
+    std::string getType() { return Type; }
+    VarExpr* getVar() { return Var; }
+};
+
+class FunctionDecl : public Stmt {
+  std::string ReturnType;
   std::string Name;
   std::vector<ParamDecl*> Params;
   CompoundStmt* Body;
 
   public:
-    FunctionDecl(std::string Name, std::vector<ParamDecl*> Params, CompoundStmt* Body)
-            : Name(Name), Params(Params), Body(Body) {}
-    static FunctionDecl* create(std::string Name, std::vector<ParamDecl*> Params, CompoundStmt* Body);
+    FunctionDecl(std::string ReturnType, std::string Name, std::vector<ParamDecl*> Params, CompoundStmt* Body)
+            : ReturnType(ReturnType), Name(Name), Params(std::move(Params)), Body(Body) {}
+    static FunctionDecl* create(std::string ReturnType, std::string Name, std::vector<ParamDecl*> Params, CompoundStmt* Body) { return new FunctionDecl(ReturnType, Name, Params, Body); }
+    std::string getReturnType() { return ReturnType; }
     std::string getName() { return Name; }
     std::vector<ParamDecl*> getParams() { return Params; }
     CompoundStmt* getBody() { return Body; }

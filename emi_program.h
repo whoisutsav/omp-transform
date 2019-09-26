@@ -6,13 +6,13 @@
 class EmiProgram {
   public:
     static EmiProgram* generateEmptyProgram();
-    EmiProgram(CompoundStmt* root, CompoundStmt* mainBody);
+    EmiProgram(FunctionDecl* main);
     void injectInputAssignment(std::string identifier, int inputVal);
     void injectStmt(Stmt* stmt);
+    FunctionDecl* getMain();
 
   private:
-    CompoundStmt* root;
-    CompoundStmt* mainBody;
+    FunctionDecl* main;
     std::vector<Stmt*>::iterator current;
     std::vector<std::pair<std::string, int>> inputs;
 };

@@ -1,7 +1,10 @@
 CXX = clang++
 CXXFLAGS = -std=c++11 -stdlib=libc++
 
-all: emi_program.o loop_transformer.o code_generator.o util.o
+all: main
+
+main: main.o emi_program.o loop_transformer.o code_generator.o util.o
+	$(CXX) $(CXXFLAGS) -o main main.o emi_program.o loop_transformer.o code_generator.o util.o
 
 main.o:
 	$(CXX) $(CXXFLAGS) -c main.cpp
@@ -19,4 +22,4 @@ util.o: code_generator.h ast.h
 	$(CXX) $(CXXFLAGS) -c util.cpp
 
 clean:
-	rm -f emi_program.o loop_transformer.o code_generator.o util.o
+	rm -f main main.o emi_program.o loop_transformer.o code_generator.o util.o
