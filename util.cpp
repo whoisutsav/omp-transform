@@ -1,7 +1,7 @@
 #include <string>
 
-std::string generateRandomAlphaNumericString(int length) {
-  std::string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+std::string generateRandomString(int length) {
+  std::string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   std::string output = "";
 
   for(int i=0; i<length; i++) {

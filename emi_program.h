@@ -13,7 +13,6 @@ class EmiProgram {
 
   private:
     FunctionDecl* main;
-    std::vector<Stmt*>::iterator current;
     std::vector<std::pair<std::string, int>> inputs;
 };
 

@@ -3,6 +3,6 @@
 
 #include <string>
 
-std::string generateRandomAlphaNumericString(int length); 
+std::string generateRandomString(int length); 
 
 #endif

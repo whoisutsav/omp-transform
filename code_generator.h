@@ -6,6 +6,7 @@
 class CodeGenerator {
   public:
     static std::string generate(Node* root);
+    static std::string generate(int indentLevel, Node* root);
 
 };
 

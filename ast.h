@@ -37,6 +37,17 @@ class VarExpr : public Expr {
     std::string getName() { return Name; }
 };
 
+class ArrayExpr : public Expr {
+  Expr* Base;
+  Expr* Index;
+
+  public:
+    ArrayExpr(Expr* Base, Expr* Index) : Base(Base), Index(Index) {}
+    static ArrayExpr* create(Expr* Base, Expr* Index) { return new ArrayExpr(Base, Index); } 
+    Expr* getBase() { return Base; }
+    Expr* getIndex() { return Index; }
+};
+
 class BinaryExpr : public Expr {
   char Op;
   Expr* LHS;
@@ -49,6 +60,17 @@ class BinaryExpr : public Expr {
     Expr* getLHS() { return LHS; }
     Expr* getRHS() { return RHS; }
     char getOp() { return Op; }
+};
+
+class CallExpr: public Expr {
+  std::string Name;
+  std::vector<Expr*> Args;
+
+  public:
+    CallExpr(const std::string &Name, std::vector<Expr*> Args) : Name(Name), Args(std::move(Args)) {}
+    static CallExpr* create(std::string Name, std::vector<Expr*> Args) { return new CallExpr(Name, Args); }
+    std::string getName() { return Name; }
+    std::vector<Expr*> getArgs() { return Args; }
 };
 
 class ExprStmt : public Stmt {
@@ -67,8 +89,8 @@ class CompoundStmt : public Stmt {
   public:
     CompoundStmt(std::vector<Stmt*> Statements)
             : Statements(std::move(Statements)) {}
-    static CompoundStmt* create() { return new CompoundStmt({}); }
-    std::vector<Stmt*> getStatements() { return Statements; }
+    static CompoundStmt* create(std::vector<Stmt*> Statements) { return new CompoundStmt(Statements); }
+    std::vector<Stmt*>& getStatements() { return Statements; }
 };
 
 class ReturnStmt : public Stmt {
@@ -133,7 +155,7 @@ class FunctionDecl : public Stmt {
     static FunctionDecl* create(std::string ReturnType, std::string Name, std::vector<ParamDecl*> Params, CompoundStmt* Body) { return new FunctionDecl(ReturnType, Name, Params, Body); }
     std::string getReturnType() { return ReturnType; }
     std::string getName() { return Name; }
-    std::vector<ParamDecl*> getParams() { return Params; }
+    std::vector<ParamDecl*>& getParams() { return Params; }
     CompoundStmt* getBody() { return Body; }
 };
 
@@ -141,7 +163,7 @@ class FunctionDecl : public Stmt {
 // Open MP Constructs
 /////////////////////////////////////////////////////////////////
 
-class Directive : public Node {
+class Directive : public Stmt {
 };
 
 class Clause;
@@ -188,7 +210,9 @@ class ParallelFor : public Directive {
 
   public:
     ParallelFor(std::vector<Clause*> Clauses, Stmt* Body)
-            : Clauses(Clauses), Body(Body) {}
+            : Clauses(std::move(Clauses)), Body(Body) {}
+    static ParallelFor* create(std::vector<Clause*> Clauses, Stmt* Body) { return new ParallelFor(Clauses, Body); }
+    Stmt* getBody() { return Body; }
 };
 
 class Target : public Directive {

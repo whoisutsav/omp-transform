@@ -34,19 +34,19 @@ std::vector<int> randNest() {
 }
 
 void injectLoopNest(EmiProgram* program, std::string counterName, int numIterations) {
-  Stmt* body = ExprStmt::create(
+  Stmt* counterIncrement = ExprStmt::create(
                   BinaryExpr::create(
                     VarExpr::create(counterName),
                     BinaryExpr::create(VarExpr::create(counterName), IntLiteral::create(1), '+'),
                     '='
                   ));
-  Stmt* current = body;
+  CompoundStmt* body = CompoundStmt::create({counterIncrement});
 
   std::vector<int> nest = randNest();
   int incCount=1;
   for(int i=0; i<nest.size(); i++) {
     LoopParams params = randLoopParameters(nest[i]);  
-    std::string emiVar = generateRandomAlphaNumericString(10); 
+    std::string emiVar = generateRandomString(10); 
     program->injectInputAssignment(emiVar, params.initialValue);
 
     std::string iteratorRef = "i" + std::to_string(i);
@@ -57,13 +57,14 @@ void injectLoopNest(EmiProgram* program, std::string counterName, int numIterati
                     BinaryExpr::create(VarExpr::create(iteratorRef), IntLiteral::create(params.step), '+'),
                     '=');
 
-    ForStmt* forStmt = ForStmt::create(init, cond, inc, current);
+    ForStmt* forStmt = ForStmt::create(init, cond, inc, body);
 
-    current = forStmt;
+    body = CompoundStmt::create({forStmt});
     incCount *= nest[i];
   }
   // TODO wrap in parallelFor Directive
-  program->injectStmt(current);
+  Stmt* parallelFor = ParallelFor::create({}, body); 
+  program->injectStmt(parallelFor);
 }
 
 void LoopTransformer::emiLoopTransform(EmiProgram* program, std::string counterName, int numIterations) {
