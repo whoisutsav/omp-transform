@@ -49,17 +49,17 @@ class ArrayExpr : public Expr {
 };
 
 class BinaryExpr : public Expr {
-  char Op;
+  std::string Op;
   Expr* LHS;
   Expr* RHS;
 
   public:
-    BinaryExpr(Expr* LHS, Expr* RHS, char Op)
+    BinaryExpr(Expr* LHS, Expr* RHS, std::string Op)
                 : Op(Op), LHS(LHS), RHS(RHS) {}
-    static BinaryExpr* create(Expr* LHS, Expr* RHS, char Op) { return new BinaryExpr(LHS, RHS, Op); }
+    static BinaryExpr* create(Expr* LHS, Expr* RHS, std::string Op) { return new BinaryExpr(LHS, RHS, Op); }
     Expr* getLHS() { return LHS; }
     Expr* getRHS() { return RHS; }
-    char getOp() { return Op; }
+    std::string getOp() { return Op; }
 };
 
 class CallExpr: public Expr {
@@ -213,6 +213,16 @@ class ParallelFor : public Directive {
             : Clauses(std::move(Clauses)), Body(Body) {}
     static ParallelFor* create(std::vector<Clause*> Clauses, Stmt* Body) { return new ParallelFor(Clauses, Body); }
     Stmt* getBody() { return Body; }
+    std::vector<Clause*> getClauses() { return Clauses; }
+};
+
+class Atomic : public Directive {
+  Stmt* Body;
+
+  public:
+    Atomic(Stmt* Body) : Body(Body) {}
+    static Atomic* create(Stmt* Body) { return new Atomic(Body); }
+    Stmt* getBody() { return Body; }
 };
 
 class Target : public Directive {
@@ -221,16 +231,17 @@ class Target : public Directive {
 
   public:
     Target(std::vector<Clause*> Clauses, Stmt* Body)
-            : Clauses(Clauses), Body(Body) {}
+            : Clauses(std::move(Clauses)), Body(Body) {}
+    static Target* create(std::vector<Clause*> Clauses, Stmt* Body) { return new Target(Clauses, Body); }
+    Stmt* getBody() { return Body; }
+    std::vector<Clause*> getClauses() { return Clauses; }
 };
 
 /////////////////////////////////////////////////////////////////
 // Open MP Clauses 
 /////////////////////////////////////////////////////////////////
 
-class Clause {
-  public:
-    virtual ~Clause();
+class Clause : public Node {
 };
 
 class IfClause : public Clause {
@@ -252,14 +263,19 @@ class CollapseClause : public Clause {
 
   public:
     CollapseClause(int num) : Num(num) {}
+    static CollapseClause* create(int num) { return new CollapseClause(num); }
+    int getNum() { return Num; }
 };
 
 class ReductionClause : public Clause {
-  std::string ReduceOp;
+  std::string Op;
   std::string Var;
 
   public:
-    ReductionClause(const std::string& ReduceOp, std::string& Var) : ReduceOp(ReduceOp), Var(Var) {}
+    ReductionClause(const std::string& Op, std::string& Var) : Op(Op), Var(Var) {}
+    static ReductionClause* create(const std::string& Op, std::string& Var) { return new ReductionClause(Op, Var); }
+    std::string getOp() { return Op; }
+    std::string getVar() { return Var; }
 };
 
 #endif /* _AST_H */

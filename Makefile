@@ -3,23 +3,20 @@ CXXFLAGS = -std=c++11 -stdlib=libc++
 
 all: main
 
-main: main.o emi_program.o loop_transformer.o code_generator.o util.o
-	$(CXX) $(CXXFLAGS) -o main main.o emi_program.o loop_transformer.o code_generator.o util.o
+main: main.o program_wrapper.o loop_injector.o codegen.o 
+	$(CXX) $(CXXFLAGS) -o main main.o program_wrapper.o loop_injector.o codegen.o 
 
 main.o:
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
-loop_transformer.o: loop_transformer.h ast.h
-	$(CXX) $(CXXFLAGS) -c loop_transformer.cpp 
+loop_injector.o: loop_injector.h ast.h
+	$(CXX) $(CXXFLAGS) -c loop_injector.cpp 
 
-emi_program.o: emi_program.h ast.h
-	$(CXX) $(CXXFLAGS) -c emi_program.cpp
+program_wrapper.o: program_wrapper.h ast.h
+	$(CXX) $(CXXFLAGS) -c program_wrapper.cpp
 
-code_generator.o: code_generator.h ast.h
-	$(CXX) $(CXXFLAGS) -c code_generator.cpp
-
-util.o: code_generator.h ast.h
-	$(CXX) $(CXXFLAGS) -c util.cpp
+codegen.o: codegen.h ast.h
+	$(CXX) $(CXXFLAGS) -c codegen.cpp
 
 clean:
-	rm -f main main.o emi_program.o loop_transformer.o code_generator.o util.o
+	rm -f main main.o program_wrapper.o loop_injector.o codegen.o 
