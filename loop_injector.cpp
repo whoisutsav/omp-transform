@@ -49,8 +49,7 @@ ForStmt* nest(Stmt* body, std::string counter, Expr* initExp, int step, std::str
                     body);
 }
 
-Stmt* accumulateBody(std::string accumulator) {
-  return Atomic::create(ExprStmt::create(increment(accumulator, 1)));
+Stmt* accumulateBody(std::string accumulator) { return Atomic::create(ExprStmt::create(increment(accumulator, 1)));
 }
 
 
@@ -91,12 +90,12 @@ void LoopInjector::injectOmpLoopAndCounterAssertion(ProgramWrapper* prog, bool u
   int nestDepth = (rand() % 10) + 3;
   int iterations = 3;
 
-  /* Accumulator */
+  /* Accumulator init */
 
   std::string accumulator = "myTotal";
   Stmt* accumulatorInit = init(accumulator, IntLiteral::create(0));
 
-  /* Loop body */
+  /* Accumulator increment in nested loop and directives */
 
   Stmt* body = accumulateBody(accumulator);
   body = loopNest(prog, body, nestDepth, iterations);
@@ -104,11 +103,11 @@ void LoopInjector::injectOmpLoopAndCounterAssertion(ProgramWrapper* prog, bool u
   if (useTarget) body = target(body);
 
   /* Assertion */
-  Stmt* assert = ExprStmt::create(assertCall(accumulator, pow(iterations, nestDepth)));
+  Stmt* assertion = ExprStmt::create(assertCall(accumulator, pow(iterations, nestDepth)));
 
   /* Inject */
   prog->getMain()->getBody()->getStatements().push_back(accumulatorInit);
   prog->getMain()->getBody()->getStatements().push_back(body);
-  prog->getMain()->getBody()->getStatements().push_back(assert);
+  prog->getMain()->getBody()->getStatements().push_back(assertion);
 }
 

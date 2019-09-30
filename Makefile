@@ -1,10 +1,10 @@
 CXX = clang++
 CXXFLAGS = -std=c++11 -stdlib=libc++
 
-all: main
+all: testgen 
 
-main: main.o program_wrapper.o loop_injector.o codegen.o 
-	$(CXX) $(CXXFLAGS) -o main main.o program_wrapper.o loop_injector.o codegen.o 
+testgen: main.o program_wrapper.o loop_injector.o codegen.o 
+	$(CXX) $(CXXFLAGS) -o testgen main.o program_wrapper.o loop_injector.o codegen.o 
 
 main.o:
 	$(CXX) $(CXXFLAGS) -c main.cpp
@@ -19,4 +19,4 @@ codegen.o: codegen.h ast.h
 	$(CXX) $(CXXFLAGS) -c codegen.cpp
 
 clean:
-	rm -f main main.o program_wrapper.o loop_injector.o codegen.o 
+	rm -f testgen main.o program_wrapper.o loop_injector.o codegen.o 

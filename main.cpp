@@ -20,7 +20,7 @@ std::string expectedInputs(ProgramWrapper* prog) {
 }
 
 std::string headers() {
-	return "#include <omp.h>\n#include <assert.h>\n#include<stdlib.h>\n"; 
+	return "#include <omp.h>\n#include <assert.h>\n#include <stdlib.h>\n"; 
 }
 
 int main(int argc, char* argv[])
