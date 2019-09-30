@@ -1,10 +1,10 @@
 # binaries
-main
+testgen
+output
 
 # object files
 *.o
 
 #other files
-a.out
 output.c
 
