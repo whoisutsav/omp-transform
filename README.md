@@ -1,5 +1,5 @@
 # openmp-testgen
-Generate random openmp test programs, using EMI principles
+Generate random OpenMP test programs, using EMI principles
 
 ### Build the test generator
 `make clean all`
